@@ -1,0 +1,16 @@
+2025-08-04 14:18:40.0449 Info Registered target NLog.Targets.FileTarget(Name=logfile)
+2025-08-04 14:18:40.0449 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create Target with unknown type-alias: 'Trace' - Extension NLog.Targets.Trace not included?
+   at NLog.Config.FactoryExtensions.CreateInstance[TBaseType](IFactory`1 factory, String typeAlias)
+   at NLog.Config.LoggingConfigurationParser.FactoryCreateInstance[T](String typeName, IFactory`1 factory)
+2025-08-04 14:18:40.0824 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Target 'traceOut' not found for logging rule: *.
+2025-08-04 14:18:40.0889 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.2.4328. Product version: 6.0.2+57d368ff20ba485e3e851fbed2e498c12398302a. GlobalAssemblyCache: False
+2025-08-04 14:18:40.0889 Info AutoReload Config File Monitor starting
+2025-08-04 14:18:40.1213 Info Configuration initialized.
+2025-08-04 14:19:28.6563 Info Registered target NLog.Targets.FileTarget(Name=logfile)
+2025-08-04 14:19:28.6563 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Failed to create Target with unknown type-alias: 'Trace' - Extension NLog.Targets.Trace not included?
+   at NLog.Config.FactoryExtensions.CreateInstance[TBaseType](IFactory`1 factory, String typeAlias)
+   at NLog.Config.LoggingConfigurationParser.FactoryCreateInstance[T](String typeName, IFactory`1 factory)
+2025-08-04 14:19:28.6744 Warn Error has been raised. Exception: NLog.NLogConfigurationException: Target 'traceOut' not found for logging rule: *.
+2025-08-04 14:19:28.6744 Info NLog, Version=6.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c. File version: 6.0.2.4328. Product version: 6.0.2+57d368ff20ba485e3e851fbed2e498c12398302a. GlobalAssemblyCache: False
+2025-08-04 14:19:28.6744 Info AutoReload Config File Monitor starting
+2025-08-04 14:19:28.7034 Info Configuration initialized.
