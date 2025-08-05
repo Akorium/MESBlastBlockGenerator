@@ -14,13 +14,13 @@ namespace MESBlastBlockGenerator
         public string HoleNumber { get; set; }
 
         [XmlAttribute("hole_type_code")]
-        public string HoleTypeCode { get; set; }
+        public string HoleTypeCode { get; set; } = "Explosive";
 
         [XmlAttribute("hole_material")]
-        public string HoleMaterial { get; set; }
+        public string HoleMaterial { get; set; } = "Взрывные скважины ВСДП";
 
         [XmlAttribute("hole_material_code")]
-        public string HoleMaterialCode { get; set; }
+        public string HoleMaterialCode { get; set; } = "1078066";
 
         [XmlAttribute("pit_code")]
         public string PitCode { get; set; }
@@ -53,73 +53,73 @@ namespace MESBlastBlockGenerator
         public string BlockBlastingName { get; set; }
 
         [XmlAttribute("PlannedSubdrill")]
-        public decimal PlannedSubdrill { get; set; }
+        public string PlannedSubdrill { get; set; } = "1";
 
         [XmlAttribute("ExplosiveRatioByWell")]
-        public decimal ExplosiveRatioByWell { get; set; }
+        public string ExplosiveRatioByWell { get; set; } = "1.252";
 
         [XmlAttribute("depth_plan")]
-        public decimal DepthPlan { get; set; }
+        public string DepthPlan { get; set; } = "9.5";
 
         [XmlAttribute("depth_plan_eom_id")]
-        public string DepthPlanEomId { get; set; }
+        public string DepthPlanEomId { get; set; } = "006";
 
         [XmlAttribute("depth_plan_eom")]
-        public string DepthPlanEom { get; set; }
+        public string DepthPlanEom { get; set; } = "м";
 
         [XmlAttribute("depth_fact")]
-        public decimal DepthFact { get; set; }
+        public string DepthFact { get; set; } = "7";
 
         [XmlAttribute("depth_fact_eom_id")]
-        public string DepthFactEomId { get; set; }
+        public string DepthFactEomId { get; set; } = "018";
 
         [XmlAttribute("depth_fact_eom")]
-        public string DepthFactEom { get; set; }
+        public string DepthFactEom { get; set; } = "пог. м";
 
         [XmlAttribute("diameter_plan")]
-        public decimal DiameterPlan { get; set; }
+        public string DiameterPlan { get; set; } = "233";
 
         [XmlAttribute("diameter_eom_id")]
-        public string DiameterEomId { get; set; }
+        public string DiameterEomId { get; set; } = "004";
 
         [XmlAttribute("diameter_eom")]
-        public string DiameterEom { get; set; }
+        public string DiameterEom { get; set; } = "см";
 
         [XmlAttribute("diameter_fact")]
-        public decimal DiameterFact { get; set; }
+        public string DiameterFact { get; set; } = "233";
 
         [XmlAttribute("diameter_fact_eom_id")]
-        public string DiameterFactEomId { get; set; }
+        public string DiameterFactEomId { get; set; } = "003";
 
         [XmlAttribute("diameter_fact_eom")]
-        public string DiameterFactEom { get; set; }
+        public string DiameterFactEom { get; set; } = "мм";
 
         [XmlAttribute("x")]
-        public decimal X { get; set; }
+        public string X { get; set; }
 
         [XmlAttribute("y")]
-        public decimal Y { get; set; }
+        public string Y { get; set; }
 
         [XmlAttribute("z")]
-        public decimal Z { get; set; }
+        public string Z { get; set; } = "980.66";
 
         [XmlAttribute("x_fact")]
-        public decimal XFact { get; set; }
+        public string XFact { get; set; }
 
         [XmlAttribute("y_fact")]
-        public decimal YFact { get; set; }
+        public string YFact { get; set; }
 
         [XmlAttribute("z_fact")]
-        public decimal ZFact { get; set; }
+        public string ZFact { get; set; } = "980.66";
 
         [XmlAttribute("isDrilling")]
-        public bool IsDrilling { get; set; }
+        public string IsDrilling { get; set; } = "true";
 
         [XmlAttribute("isDefective")]
-        public bool IsDefective { get; set; }
+        public string IsDefective { get; set; } = "false";
 
         [XmlAttribute("isDelete")]
-        public bool IsDelete { get; set; }
+        public string IsDelete { get; set; } = "false";
     }
 
 }

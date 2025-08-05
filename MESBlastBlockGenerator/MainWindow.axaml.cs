@@ -87,44 +87,6 @@ namespace MESBlastBlockGenerator
             }
         }
 
-        private static string GenerateHole(int row, int col, string x, string y,
-                                 string blastProjectId, string pitName,
-                                 int level, int blockNumber)
-        {
-            string holeNum = $"{row:D2}{col:D2}";
-            string holeId = Guid.NewGuid().ToString();
-
-            return $@"    <hole>
-      <holeitem blast_project_Id=""{blastProjectId}"" hole_id=""{holeId}"" 
-                hole_number=""{holeNum}"" hole_type_code=""Explosive"" 
-                hole_material=""Взрывные скважины ВСДП"" hole_material_code=""1078066"" 
-                pit_code=""{pitName}"" pit_name=""{pitName}"" level_code=""{pitName}{level}"" level_name=""{level}"" 
-                block_code=""{pitName}{level}-{blockNumber}"" block_name=""{level}-{blockNumber}"" 
-                blockDrilling_code=""{pitName}{pitName}{level}{level}-{blockNumber}Drill"" blockDrilling_name=""{level}-{blockNumber}"" 
-                blockBlasting_code=""{pitName}{level}-{blockNumber}Blast"" blockBlasting_name=""{level}-{blockNumber}"" 
-                PlannedSubdrill=""1"" ExplosiveRatioByWell=""1.252"" depth_plan=""9.5"" 
-                depth_plan_eom_id=""006"" depth_plan_eom=""м"" depth_fact=""7"" 
-                depth_fact_eom_id=""018"" depth_fact_eom=""пог. м"" diameter_plan=""233"" 
-                diameter_eom_id=""004"" diameter_eom=""см"" diameter_fact=""233"" 
-                diameter_fact_eom_id=""003"" diameter_fact_eom=""мм"" 
-                x=""{x}"" y=""{y}"" z=""980.66"" x_fact=""{x}"" y_fact=""{y}"" z_fact=""980.66"" 
-                isDrilling=""true"" isDefective=""false"" isDelete=""false""/>
-      <planChargeMaterials>
-        <material material_code=""1025160"" material_shortname=""Вещество взрывчатое Березит Э-70"" 
-                  QuantityCartridgePacked=""0"" amount_eom=""кг"" is_explosive=""true"" 
-                  material_density=""1200"" cup_density=""0"">
-          <amounts><amount value=""500"" priority=""1""/><amount value=""600"" priority=""2""/></amounts>
-        </material>
-        <material material_code=""798031"" material_shortname=""Шашка-детонатор литая ПТ-П-750"" 
-                  QuantityCartridgePacked=""0"" amount_eom=""кг"" is_explosive=""false"" 
-                  material_density=""1200"" cup_density="""">
-          <amounts><amount value=""0.75"" priority=""1""/></amounts>
-        </material>
-      </planChargeMaterials>
-      <stemming_length_plan value=""4.59""/>
-    </hole>";
-        }
-
         private static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
                                        string pitName, int level, int blockNumber)
         {
@@ -155,33 +117,15 @@ namespace MESBlastBlockGenerator
             var xmlWriter = new StringWriter();
             xmlSerializer.Serialize(xmlWriter, envelope);
             return xmlWriter.ToString();
-            /*
+        }
+
+        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
+        {
             string blastProjectId = Guid.NewGuid().ToString();
             double rotationAngleRad = rotationAngleDegrees * Math.PI / 180.0;
             double cosAngle = Math.Cos(rotationAngleRad);
             double sinAngle = Math.Sin(rotationAngleRad);
 
-            for (int row = 0; row < maxRow; row++)
-            {
-                for (int col = 0; col < maxCol; col++)
-                {
-                    double x = baseX + (col) * distance;
-                    double y = baseY + (row) * distance;
-
-                    // Применяем поворот относительно (baseX, baseY)
-                    double relX = x - baseX;
-                    double relY = y - baseY;
-
-                    x = baseX + relX * cosAngle - relY * sinAngle;
-                    y = baseY + relX * sinAngle + relY * cosAngle;
-
-
-                }
-            }*/
-        }
-
-        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
-        {
             var holes = new List<Hole>();
             for (int row = 0; row < maxRow; row++)
             {
@@ -189,11 +133,34 @@ namespace MESBlastBlockGenerator
                 {
                     double x = baseX + (col) * distance;
                     double y = baseY + (row) * distance;
+
+                    double relX = x - baseX;
+                    double relY = y - baseY;
+
+                    x = baseX + relX * cosAngle - relY * sinAngle;
+                    y = baseY + relX * sinAngle + relY * cosAngle;
+
                     var hole = new Hole
                     {
                         HoleItem = new HoleItem
                         {
-
+                            BlastProjectId = blastProjectId,
+                            HoleId = Guid.NewGuid().ToString(),
+                            HoleNumber = $"{row:D2}{col:D2}",
+                            PitCode = pitName,
+                            PitName = pitName,
+                            LevelCode = $"{pitName}{level}",
+                            LevelName = $"{level}",
+                            BlockCode = $"{pitName}{level}-{blockNumber}",
+                            BlockName = $"{level}-{blockNumber}",
+                            BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
+                            BlockDrillingName = $"{level}-{blockNumber}",
+                            BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
+                            BlockBlastingName = $"{level}-{blockNumber}",
+                            X = x.ToString(CultureInfo.InvariantCulture),
+                            Y = y.ToString(CultureInfo.InvariantCulture),
+                            XFact = x.ToString(CultureInfo.InvariantCulture),
+                            YFact = y.ToString(CultureInfo.InvariantCulture)
                         }
                     };
                     holes.Add(hole);

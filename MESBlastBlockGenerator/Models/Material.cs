@@ -6,28 +6,28 @@ namespace MESBlastBlockGenerator
     public class Material
     {
         [XmlAttribute("material_code")]
-        public string MaterialCode { get; set; }
+        public string MaterialCode { get; set; } = "798031";
 
         [XmlAttribute("material_shortname")]
-        public string MaterialShortName { get; set; }
+        public string MaterialShortName { get; set; } = "Шашка-детонатор литая ПТ-П-750";
 
         [XmlAttribute("QuantityCartridgePacked")]
-        public int QuantityCartridgePacked { get; set; }
+        public string QuantityCartridgePacked { get; set; } = "0";
 
         [XmlAttribute("amount_eom")]
-        public string AmountEom { get; set; }
+        public string AmountEom { get; set; } = "кг";
 
         [XmlAttribute("is_explosive")]
-        public bool IsExplosive { get; set; }
+        public string IsExplosive { get; set; } = "false";
 
         [XmlAttribute("material_density")]
-        public decimal MaterialDensity { get; set; }
+        public string MaterialDensity { get; set; } = "1200";
 
         [XmlAttribute("cup_density")]
-        public decimal CupDensity { get; set; }
+        public string CupDensity { get; set; } = string.Empty;
 
         [XmlArray("amounts")]
         [XmlArrayItem("amount")]
-        public List<Amount> Amounts { get; set; }
+        public List<Amount> Amounts { get; set; } = [new()];
     }
 }

@@ -5,9 +5,9 @@ namespace MESBlastBlockGenerator
     public class Amount
     {
         [XmlAttribute("value")]
-        public decimal Value { get; set; }
+        public string Value { get; set; } = "0.75";
 
         [XmlAttribute("priority")]
-        public int Priority { get; set; }
+        public string Priority { get; set; } = "1";
     }
 }

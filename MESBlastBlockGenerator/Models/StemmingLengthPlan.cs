@@ -5,6 +5,6 @@ namespace MESBlastBlockGenerator
     public class StemmingLengthPlan
     {
         [XmlAttribute("value")]
-        public decimal Value { get; set; }
+        public string Value { get; set; } = "4.59";
     }
 }
