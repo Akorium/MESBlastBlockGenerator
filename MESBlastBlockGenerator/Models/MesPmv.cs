@@ -2,6 +2,7 @@
 
 namespace MESBlastBlockGenerator
 {
+    [XmlRoot(ElementName = "mes_pmv", Namespace = "")]
     public class MesPmv
     {
         [XmlAttribute("messageid")]

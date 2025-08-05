@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Media;
 using NLog;
@@ -8,6 +7,8 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Text;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace MESBlastBlockGenerator
@@ -87,36 +88,75 @@ namespace MESBlastBlockGenerator
             }
         }
 
-        private static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
+        private string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
                                        string pitName, int level, int blockNumber)
         {
+            var mesPmv = new MesPmv
+            {
+                HolesInBlastProject = new HolesInBlastProject
+                {
+                    Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber)
+                }
+            };
+            var innerXml = SerializeMesPmv(mesPmv);
             var envelope = new Envelope
             {
-                Header = new Header(),
                 Body = new Body
                 {
                     SoapXmlRequest = new SoapXmlRequest
                     {
                         XmlRequest = new XmlRequest
                         {
-                            Message = new Message
-                            {
-                                MesPmv = new MesPmv
-                                {
-                                    HolesInBlastProject = new HolesInBlastProject
-                                    {
-                                        Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber)
-                                    }
-                                }
-                            }
+                            Message = new Message { XmlContent = innerXml }
                         }
                     }
                 }
             };
-            var xmlSerializer = new XmlSerializer(typeof(Envelope));
-            var xmlWriter = new StringWriter();
-            xmlSerializer.Serialize(xmlWriter, envelope);
-            return xmlWriter.ToString();
+            var soapXml = SerializeEnvelope(envelope);
+            return soapXml;
+        }
+
+        public string SerializeEnvelope(Envelope envelope)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8, // Убедитесь, что используете UTF-8
+                Indent = true,
+                OmitXmlDeclaration = false // Оставляем XML-декларацию
+            };
+
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("x", "http://schemas.xmlsoap.org/soap/envelope/");
+            ns.Add("tem", "http://tempuri.org/");
+
+            using (var stream = new StringWriter())
+            using (var writer = XmlWriter.Create(stream, settings))
+            {
+                var serializer = new XmlSerializer(typeof(Envelope));
+                serializer.Serialize(writer, envelope, ns);
+                return stream.ToString();
+            }
+        }
+
+        public string SerializeMesPmv(MesPmv mesPmv)
+        {
+            var settings = new XmlWriterSettings
+            {
+                Encoding = Encoding.UTF8,
+                Indent = true,
+                OmitXmlDeclaration = true
+            };
+
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", ""); // Убираем все пространства имен
+
+            using (var stream = new StringWriter())
+            using (var writer = XmlWriter.Create(stream, settings))
+            {
+                var serializer = new XmlSerializer(typeof(MesPmv));
+                serializer.Serialize(writer, mesPmv, ns);
+                return stream.ToString();
+            }
         }
 
         private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
