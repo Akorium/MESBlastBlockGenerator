@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Models.BlastProject
 {
     public class Hole
     {

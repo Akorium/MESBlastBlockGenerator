@@ -3,19 +3,15 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using NLog;
 using System;
-using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Reflection;
-using System.Text;
-using System.Xml;
-using System.Xml.Serialization;
 
 namespace MESBlastBlockGenerator
 {
     public partial class MainWindow : Window
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private readonly BlastBlockGenerator _generator = new();
+        private const int maxWells = 5000;
         public MainWindow()
         {
             InitializeComponent();
@@ -38,12 +34,13 @@ namespace MESBlastBlockGenerator
                 try
                 {
                     logger.Debug($"Попытка генерации XML с maxRow = {maxRow}, maxCol = {maxCol}, baseX = {baseX}, baseY = {baseY}, distance = {distance}, pitName = {pitName}, level = {level}, blockNumber = {blockNumber}");
-                    string xmlContent = GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
+                    string xmlContent = BlastBlockGenerator.GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
                                                          pitName, level, blockNumber);
-                    XmlOutput.Text = xmlContent;
+
                     string successGenerationMessage = "XML успешно сгенерирован!";
-                    StatusText.Text = successGenerationMessage;
                     logger.Info(successGenerationMessage);
+                    StatusText.Text = successGenerationMessage;
+                    XmlOutput.Text = xmlContent;
                 }
                 catch (Exception ex)
                 {
@@ -66,7 +63,6 @@ namespace MESBlastBlockGenerator
             logger.Info("Инициализировано копирование результата в буфер обмена");
             if (!string.IsNullOrWhiteSpace(XmlOutput.Text))
             {
-                // Получаем TopLevel (обычно это MainWindow)
                 var topLevel = TopLevel.GetTopLevel(this);
 
                 if (topLevel != null && topLevel.Clipboard != null)
@@ -88,138 +84,13 @@ namespace MESBlastBlockGenerator
             }
         }
 
-        private string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
-                                       string pitName, int level, int blockNumber)
-        {
-            var mesPmv = new MesPmv
-            {
-                HolesInBlastProject = new HolesInBlastProject
-                {
-                    Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber)
-                }
-            };
-            var innerXml = SerializeMesPmv(mesPmv);
-            var envelope = new Envelope
-            {
-                Body = new Body
-                {
-                    SoapXmlRequest = new SoapXmlRequest
-                    {
-                        XmlRequest = new XmlRequest
-                        {
-                            Message = new Message { XmlContent = innerXml }
-                        }
-                    }
-                }
-            };
-            var soapXml = SerializeEnvelope(envelope);
-            return soapXml;
-        }
-
-        public string SerializeEnvelope(Envelope envelope)
-        {
-            var settings = new XmlWriterSettings
-            {
-                Encoding = Encoding.UTF8, // Убедитесь, что используете UTF-8
-                Indent = true,
-                OmitXmlDeclaration = false // Оставляем XML-декларацию
-            };
-
-            var ns = new XmlSerializerNamespaces();
-            ns.Add("x", "http://schemas.xmlsoap.org/soap/envelope/");
-            ns.Add("tem", "http://tempuri.org/");
-
-            using (var stream = new StringWriter())
-            using (var writer = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(typeof(Envelope));
-                serializer.Serialize(writer, envelope, ns);
-                return stream.ToString();
-            }
-        }
-
-        public string SerializeMesPmv(MesPmv mesPmv)
-        {
-            var settings = new XmlWriterSettings
-            {
-                Encoding = Encoding.UTF8,
-                Indent = true,
-                OmitXmlDeclaration = true
-            };
-
-            var ns = new XmlSerializerNamespaces();
-            ns.Add("", ""); // Убираем все пространства имен
-
-            using (var stream = new StringWriter())
-            using (var writer = XmlWriter.Create(stream, settings))
-            {
-                var serializer = new XmlSerializer(typeof(MesPmv));
-                serializer.Serialize(writer, mesPmv, ns);
-                return stream.ToString();
-            }
-        }
-
-        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
-        {
-            string blastProjectId = Guid.NewGuid().ToString();
-            double rotationAngleRad = rotationAngleDegrees * Math.PI / 180.0;
-            double cosAngle = Math.Cos(rotationAngleRad);
-            double sinAngle = Math.Sin(rotationAngleRad);
-
-            var holes = new List<Hole>();
-            for (int row = 0; row < maxRow; row++)
-            {
-                for (int col = 0; col < maxCol; col++)
-                {
-                    double x = baseX + (col) * distance;
-                    double y = baseY + (row) * distance;
-
-                    double relX = x - baseX;
-                    double relY = y - baseY;
-
-                    x = baseX + relX * cosAngle - relY * sinAngle;
-                    y = baseY + relX * sinAngle + relY * cosAngle;
-
-                    var hole = new Hole
-                    {
-                        HoleItem = new HoleItem
-                        {
-                            BlastProjectId = blastProjectId,
-                            HoleId = Guid.NewGuid().ToString(),
-                            HoleNumber = $"{row:D2}{col:D2}",
-                            PitCode = pitName,
-                            PitName = pitName,
-                            LevelCode = $"{pitName}{level}",
-                            LevelName = $"{level}",
-                            BlockCode = $"{pitName}{level}-{blockNumber}",
-                            BlockName = $"{level}-{blockNumber}",
-                            BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
-                            BlockDrillingName = $"{level}-{blockNumber}",
-                            BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
-                            BlockBlastingName = $"{level}-{blockNumber}",
-                            X = x.ToString(CultureInfo.InvariantCulture),
-                            Y = y.ToString(CultureInfo.InvariantCulture),
-                            XFact = x.ToString(CultureInfo.InvariantCulture),
-                            YFact = y.ToString(CultureInfo.InvariantCulture)
-                        }
-                    };
-                    holes.Add(hole);
-                }
-            }
-            return holes;
-        }
-
         private bool ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
                           out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage)
         {
-            // Инициализация out-параметров
             maxRow = maxCol = level = blockNumber = 0;
             rotationAngleDegrees = baseX = baseY = distance = 0;
             errorMessage = pitName = string.Empty;
-            const int maxWells = 5000;
 
-
-            // Сброс стилей ошибок
             MaxRowTextBox.Classes.Remove("invalid");
             MaxColTextBox.Classes.Remove("invalid");
             RotationAngleTextBox.Classes.Remove("invalid");
@@ -230,7 +101,6 @@ namespace MESBlastBlockGenerator
             PitNameTextBox.Classes.Remove("invalid");
             BlockNumberTextBox.Classes.Remove("invalid");
 
-            // Проверка отдельных полей
             if (!int.TryParse(MaxRowTextBox.Text, out maxRow) || maxRow <= 0)
             {
                 MaxRowTextBox.Classes.Add("invalid");
@@ -295,7 +165,6 @@ namespace MESBlastBlockGenerator
                 return false;
             }
 
-            // Проверка общего количества скважин
             int totalWells = maxCol * maxRow;
             if (totalWells > maxWells)
             {

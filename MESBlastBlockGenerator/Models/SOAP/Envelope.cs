@@ -1,6 +1,6 @@
 ﻿using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Models.SOAP
 {
     [XmlRoot(ElementName = "Envelope", Namespace = "http://schemas.xmlsoap.org/soap/envelope/")]
     public class Envelope

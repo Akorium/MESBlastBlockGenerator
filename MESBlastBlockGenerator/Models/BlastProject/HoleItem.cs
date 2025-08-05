@@ -1,17 +1,17 @@
 ﻿using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Models.BlastProject
 {
     public class HoleItem
     {
         [XmlAttribute("blast_project_Id")]
-        public string BlastProjectId { get; set; }
+        public required string BlastProjectId { get; set; }
 
         [XmlAttribute("hole_id")]
-        public string HoleId { get; set; }
+        public required string HoleId { get; set; }
 
         [XmlAttribute("hole_number")]
-        public string HoleNumber { get; set; }
+        public required string HoleNumber { get; set; }
 
         [XmlAttribute("hole_type_code")]
         public string HoleTypeCode { get; set; } = "Explosive";
@@ -23,34 +23,34 @@ namespace MESBlastBlockGenerator
         public string HoleMaterialCode { get; set; } = "1078066";
 
         [XmlAttribute("pit_code")]
-        public string PitCode { get; set; }
+        public required string PitCode { get; set; }
 
         [XmlAttribute("pit_name")]
-        public string PitName { get; set; }
+        public required string PitName { get; set; }
 
         [XmlAttribute("level_code")]
-        public string LevelCode { get; set; }
+        public required string LevelCode { get; set; }
 
         [XmlAttribute("level_name")]
-        public string LevelName { get; set; }
+        public required string LevelName { get; set; }
 
         [XmlAttribute("block_code")]
-        public string BlockCode { get; set; }
+        public required string BlockCode { get; set; }
 
         [XmlAttribute("block_name")]
-        public string BlockName { get; set; }
+        public required string BlockName { get; set; }
 
         [XmlAttribute("blockDrilling_code")]
-        public string BlockDrillingCode { get; set; }
+        public required string BlockDrillingCode { get; set; }
 
         [XmlAttribute("blockDrilling_name")]
-        public string BlockDrillingName { get; set; }
+        public required string BlockDrillingName { get; set; }
 
         [XmlAttribute("blockBlasting_code")]
-        public string BlockBlastingCode { get; set; }
+        public required string BlockBlastingCode { get; set; }
 
         [XmlAttribute("blockBlasting_name")]
-        public string BlockBlastingName { get; set; }
+        public required string BlockBlastingName { get; set; }
 
         [XmlAttribute("PlannedSubdrill")]
         public string PlannedSubdrill { get; set; } = "1";
@@ -95,19 +95,19 @@ namespace MESBlastBlockGenerator
         public string DiameterFactEom { get; set; } = "мм";
 
         [XmlAttribute("x")]
-        public string X { get; set; }
+        public required string X { get; set; }
 
         [XmlAttribute("y")]
-        public string Y { get; set; }
+        public required string Y { get; set; }
 
         [XmlAttribute("z")]
         public string Z { get; set; } = "980.66";
 
         [XmlAttribute("x_fact")]
-        public string XFact { get; set; }
+        public required string XFact { get; set; }
 
         [XmlAttribute("y_fact")]
-        public string YFact { get; set; }
+        public required string YFact { get; set; }
 
         [XmlAttribute("z_fact")]
         public string ZFact { get; set; } = "980.66";
