@@ -91,47 +91,59 @@ namespace MESBlastBlockGenerator
             double cosAngle = Math.Cos(rotationAngleRad);
             double sinAngle = Math.Sin(rotationAngleRad);
 
-            var holes = new List<Hole>();
+            var holes = new List<Hole>(maxRow * maxCol);
             for (int row = 0; row < maxRow; row++)
             {
                 for (int col = 0; col < maxCol; col++)
                 {
-                    double x = baseX + (col) * distance;
-                    double y = baseY + (row) * distance;
+                    (double x, double y) = CalculateHoleCoords(baseX, baseY, distance, cosAngle, sinAngle, row, col);
 
-                    double relX = x - baseX;
-                    double relY = y - baseY;
-
-                    x = baseX + relX * cosAngle - relY * sinAngle;
-                    y = baseY + relX * sinAngle + relY * cosAngle;
-
-                    var hole = new Hole
-                    {
-                        HoleItem = new HoleItem
-                        {
-                            BlastProjectId = blastProjectId,
-                            HoleId = Guid.NewGuid().ToString(),
-                            HoleNumber = $"{row:D2}{col:D2}",
-                            PitCode = pitName,
-                            PitName = pitName,
-                            LevelCode = $"{pitName}{level}",
-                            LevelName = $"{level}",
-                            BlockCode = $"{pitName}{level}-{blockNumber}",
-                            BlockName = $"{level}-{blockNumber}",
-                            BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
-                            BlockDrillingName = $"{level}-{blockNumber}",
-                            BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
-                            BlockBlastingName = $"{level}-{blockNumber}",
-                            X = x.ToString(CultureInfo.InvariantCulture),
-                            Y = y.ToString(CultureInfo.InvariantCulture),
-                            XFact = x.ToString(CultureInfo.InvariantCulture),
-                            YFact = y.ToString(CultureInfo.InvariantCulture)
-                        }
-                    };
+                    var hole = GenerateHole(pitName, level, blockNumber, blastProjectId, row, col, x, y);
                     holes.Add(hole);
                 }
             }
             return holes;
+        }
+
+        private static Hole GenerateHole(string pitName, int level, int blockNumber, string blastProjectId, int row, int col, double x, double y)
+        {
+            return new Hole
+            {
+                HoleItem = new HoleItem
+                {
+                    BlastProjectId = blastProjectId,
+                    HoleId = Guid.NewGuid().ToString(),
+                    HoleNumber = $"{row:D2}{col:D2}",
+                    PitCode = pitName,
+                    PitName = pitName,
+                    LevelCode = $"{pitName}{level}",
+                    LevelName = $"{level}",
+                    BlockCode = $"{pitName}{level}-{blockNumber}",
+                    BlockName = $"{level}-{blockNumber}",
+                    BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
+                    BlockDrillingName = $"{level}-{blockNumber}",
+                    BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
+                    BlockBlastingName = $"{level}-{blockNumber}",
+                    X = x.ToString(CultureInfo.InvariantCulture),
+                    Y = y.ToString(CultureInfo.InvariantCulture),
+                    XFact = x.ToString(CultureInfo.InvariantCulture),
+                    YFact = y.ToString(CultureInfo.InvariantCulture)
+                }
+            };
+        }
+
+        private static (double x, double y) CalculateHoleCoords(double baseX, double baseY, double distance, double cosAngle, double sinAngle, int row, int col)
+        {
+            double x = baseX + (col) * distance;
+            double y = baseY + (row) * distance;
+
+            double relX = x - baseX;
+            double relY = y - baseY;
+
+            x = baseX + relX * cosAngle - relY * sinAngle;
+            y = baseY + relX * sinAngle + relY * cosAngle;
+
+            return (x, y);
         }
     }
 }
