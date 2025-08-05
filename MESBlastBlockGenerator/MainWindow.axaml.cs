@@ -4,8 +4,11 @@ using Avalonia.Interactivity;
 using Avalonia.Media;
 using NLog;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
 using System.Reflection;
+using System.Xml.Serialization;
 
 namespace MESBlastBlockGenerator
 {
@@ -125,18 +128,34 @@ namespace MESBlastBlockGenerator
         private static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
                                        string pitName, int level, int blockNumber)
         {
-            using var writer = new System.IO.StringWriter();
-            writer.Write(@"<?xml version=""1.0""?>
-<x:Envelope xmlns:x=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:tem=""http://tempuri.org/"">
-  <x:Header/>
-  <x:Body>
-    <tem:SoapXmlRequest>
-      <tem:xmlRequest>
-        <tem:Message><![CDATA[<?xml version=""1.0"" encoding=""utf-8""?>
-<mes_pmv messageid=""1022a282f6afb23b0f3b"" systemid=""MES"" businessid="""">
-  <holes_in_blast_project>
-");
-
+            var envelope = new Envelope
+            {
+                Header = new Header(),
+                Body = new Body
+                {
+                    SoapXmlRequest = new SoapXmlRequest
+                    {
+                        XmlRequest = new XmlRequest
+                        {
+                            Message = new Message
+                            {
+                                MesPmv = new MesPmv
+                                {
+                                    HolesInBlastProject = new HolesInBlastProject
+                                    {
+                                        Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+            var xmlSerializer = new XmlSerializer(typeof(Envelope));
+            var xmlWriter = new StringWriter();
+            xmlSerializer.Serialize(xmlWriter, envelope);
+            return xmlWriter.ToString();
+            /*
             string blastProjectId = Guid.NewGuid().ToString();
             double rotationAngleRad = rotationAngleDegrees * Math.PI / 180.0;
             double cosAngle = Math.Cos(rotationAngleRad);
@@ -156,20 +175,33 @@ namespace MESBlastBlockGenerator
                     x = baseX + relX * cosAngle - relY * sinAngle;
                     y = baseY + relX * sinAngle + relY * cosAngle;
 
-                    writer.Write("\n" + GenerateHole(row, col, x.ToString(CultureInfo.InvariantCulture), y.ToString(CultureInfo.InvariantCulture), blastProjectId, pitName, level, blockNumber));
+
+                }
+            }*/
+        }
+
+        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
+        {
+            var holes = new List<Hole>();
+            for (int row = 0; row < maxRow; row++)
+            {
+                for (int col = 0; col < maxCol; col++)
+                {
+                    double x = baseX + (col) * distance;
+                    double y = baseY + (row) * distance;
+                    var hole = new Hole
+                    {
+                        HoleItem = new HoleItem
+                        {
+
+                        }
+                    };
+                    holes.Add(hole);
                 }
             }
-
-            writer.Write(@"
-  </holes_in_blast_project>
-</mes_pmv>]]></tem:Message>
-      </tem:xmlRequest>
-    </tem:SoapXmlRequest>
-  </x:Body>
-</x:Envelope>");
-
-            return writer.ToString();
+            return holes;
         }
+
         private bool ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
                           out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage)
         {
