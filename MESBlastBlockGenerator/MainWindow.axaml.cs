@@ -164,7 +164,7 @@ namespace MESBlastBlockGenerator
                 errorMessage = "Некорректное значение номера блока";
                 return false;
             }
-
+            // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
             int totalWells = maxCol * maxRow;
             if (totalWells > maxWells)
             {

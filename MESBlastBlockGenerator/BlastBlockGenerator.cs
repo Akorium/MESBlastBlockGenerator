@@ -11,13 +11,36 @@ using MESBlastBlockGenerator.Models.BlastProject;
 
 namespace MESBlastBlockGenerator
 {
+    /// <summary>
+    /// Класс для генерации XML в формате MES
+    /// </summary>
     public class BlastBlockGenerator
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly XmlWriterSettings xmlSettings = new()
+        {
+            Encoding = Encoding.UTF8,
+            Indent = true,
+            OmitXmlDeclaration = true
+        };
 
+        /// <summary>
+        /// Точка входа для генерации XML в формате MES
+        /// </summary>
+        /// <param name="maxRow">Количество рядов скважин</param>
+        /// <param name="maxCol">Количество столбцов скважин</param>
+        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин</param>
+        /// <param name="baseX">X первой скважины блока</param>
+        /// <param name="baseY">Y первой скважины блока</param>
+        /// <param name="distance">Расстояние между скважинами</param>
+        /// <param name="pitName">Название карьера</param>
+        /// <param name="level">Уровень проекта</param>
+        /// <param name="blockNumber">Порядковый номер блока</param>
+        /// <returns>XML в формате string</returns>
         public static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
                                        string pitName, int level, int blockNumber)
         {
+            //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
             var mesPmv = new MesPmv
             {
                 HolesInBlastProject = new HolesInBlastProject
@@ -44,45 +67,55 @@ namespace MESBlastBlockGenerator
             var soapXml = SerializeToSoap(envelope);
             return soapXml;
         }
+        /// <summary>
+        /// Сериализует сообщение mes_pmv
+        /// </summary>
+        /// <param name="mesPmv">Объект MesPmv</param>
+        /// <returns>Сериализованный объект MesPmv в формате string</returns>
         private static string SerializeMessage(MesPmv mesPmv)
         {
             logger.Debug("Инициализирована сериализация сообщения mes_pmv");
-            var settings = new XmlWriterSettings
-            {
-                Encoding = Encoding.UTF8,
-                Indent = true,
-                OmitXmlDeclaration = true
-            };
-
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
 
             using var stream = new StringWriter();
-            using var writer = XmlWriter.Create(stream, settings);
+            using var writer = XmlWriter.Create(stream, xmlSettings);
             var serializer = new XmlSerializer(typeof(MesPmv));
             serializer.Serialize(writer, mesPmv, ns);
             return stream.ToString();
         }
+        /// <summary>
+        /// Сериализует итоговый XML с учётом SOAP-конверта
+        /// </summary>
+        /// <param name="envelope">Объект Envelope(SOAP-конверт)</param>
+        /// <returns>Сериализованный XML в формате string</returns>
         private static string SerializeToSoap(Envelope envelope)
         {
             logger.Debug("Инициализирована сериализация SOAP-конверта");
-            var settings = new XmlWriterSettings
-            {
-                Encoding = Encoding.UTF8,
-                Indent = true,
-                OmitXmlDeclaration = true
-            };
-
             var ns = new XmlSerializerNamespaces();
             ns.Add("x", "http://schemas.xmlsoap.org/soap/envelope/");
             ns.Add("tem", "http://tempuri.org/");
 
             using var stream = new StringWriter();
-            using var writer = XmlWriter.Create(stream, settings);
+            using var writer = XmlWriter.Create(stream, xmlSettings);
             var serializer = new XmlSerializer(typeof(Envelope));
             serializer.Serialize(writer, envelope, ns);
             return stream.ToString();
         }
+
+        /// <summary>
+        /// Генерирует список скважин для блока
+        /// </summary>
+        /// <param name="maxRow">Количество рядов скважин</param>
+        /// <param name="maxCol">Количество столбцов скважин</param>
+        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин</param>
+        /// <param name="baseX">X первой скважины блока</param>
+        /// <param name="baseY">Y первой скважины блока</param>
+        /// <param name="distance">Расстояние между скважинами</param>
+        /// <param name="pitName">Название карьера</param>
+        /// <param name="level">Уровень проекта</param>
+        /// <param name="blockNumber">Порядковый номер блока</param>
+        /// <returns>Список объектов Hole</returns>
         private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
         {
             logger.Debug("Инициализирована генерация скважин");
@@ -105,12 +138,25 @@ namespace MESBlastBlockGenerator
             return holes;
         }
 
+        /// <summary>
+        /// Генерирует скважин для блока
+        /// </summary>
+        /// <param name="pitName">Название карьера</param>
+        /// <param name="level">Уровень проекта</param>
+        /// <param name="blockNumber">Порядковый номер блока</param>
+        /// <param name="blastProjectId">GUID проекта</param>
+        /// <param name="row">Ряд скважины</param>
+        /// <param name="col">Столбец скважины</param>
+        /// <param name="x">X координата скважины</param>
+        /// <param name="y">Y координата скважины</param>
+        /// <returns>Объект Hole</returns>
         private static Hole GenerateHole(string pitName, int level, int blockNumber, string blastProjectId, int row, int col, double x, double y)
         {
             return new Hole
             {
                 HoleItem = new HoleItem
                 {
+                    //MES передаёт все поля в string
                     BlastProjectId = blastProjectId,
                     HoleId = Guid.NewGuid().ToString(),
                     HoleNumber = $"{row:D2}{col:D2}",
@@ -132,6 +178,17 @@ namespace MESBlastBlockGenerator
             };
         }
 
+        /// <summary>
+        /// Расчитывает координаты скважины
+        /// </summary>
+        /// <param name="baseX">X первой скважины блока</param>
+        /// <param name="baseY">Y первой скважины блока</param>
+        /// <param name="distance">Расстояние между скважинами</param>
+        /// <param name="cosAngle">Косинус угла поворота блока</param>
+        /// <param name="sinAngle">Синус угла поворота блока</param>
+        /// <param name="row">Ряд скважины</param>
+        /// <param name="col">Столбец скважины</param>
+        /// <returns>Координаты X и Y</returns>
         private static (double x, double y) CalculateHoleCoords(double baseX, double baseY, double distance, double cosAngle, double sinAngle, int row, int col)
         {
             double x = baseX + (col) * distance;
