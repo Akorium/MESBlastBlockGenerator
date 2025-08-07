@@ -11,7 +11,10 @@ namespace MESBlastBlockGenerator
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly BlastBlockGenerator _generator = new();
+
+        // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
         private const int maxWells = 5000;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -21,7 +24,11 @@ namespace MESBlastBlockGenerator
             this.Title = title;
             logger.Info($"{title} запущен");
         }
-
+        /// <summary>
+        /// Обработчик нажатия кнопки "Сгенерировать XML"
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void OnGenerateClick(object sender, RoutedEventArgs e)
         {
             logger.Info("Инициализирована генерация XML");
@@ -58,6 +65,11 @@ namespace MESBlastBlockGenerator
             }
         }
 
+        /// <summary>
+        /// Обработчик нажатия кнопки "Копировать в буфер обмена"
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private async void OnCopyClick(object sender, RoutedEventArgs e)
         {
             logger.Info("Инициализировано копирование результата в буфер обмена");
@@ -84,6 +96,20 @@ namespace MESBlastBlockGenerator
             }
         }
 
+        /// <summary>
+        /// Валидация входных параметров
+        /// </summary>
+        /// <param name="maxRow">Количество рядов скважин</param>
+        /// <param name="maxCol">Количество столбцов скважин</param>
+        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин</param>
+        /// <param name="baseX">X первой скважины блока</param>
+        /// <param name="baseY">Y первой скважины блока</param>
+        /// <param name="distance">Расстояние между скважинами</param>
+        /// <param name="pitName">Название карьера</param>
+        /// <param name="level">Уровень проекта</param>
+        /// <param name="blockNumber">Порядковый номер блока</param>
+        /// <param name="errorMessage"></param>
+        /// <returns></returns>
         private bool ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
                           out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage)
         {
@@ -164,7 +190,7 @@ namespace MESBlastBlockGenerator
                 errorMessage = "Некорректное значение номера блока";
                 return false;
             }
-            // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
+            
             int totalWells = maxCol * maxRow;
             if (totalWells > maxWells)
             {
