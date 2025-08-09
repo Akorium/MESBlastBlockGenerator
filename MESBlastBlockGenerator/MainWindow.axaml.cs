@@ -10,8 +10,7 @@ namespace MESBlastBlockGenerator
     public partial class MainWindow : Window
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private readonly BlastBlockGenerator _generator = new();
-
+        
         // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
         private const int maxWells = 5000;
 
@@ -43,7 +42,7 @@ namespace MESBlastBlockGenerator
                 try
                 {
                     logger.Debug($"Попытка генерации XML с maxRow = {maxRow}, maxCol = {maxCol}, baseX = {baseX}, baseY = {baseY}, distance = {distance}, pitName = {pitName}, level = {level}, blockNumber = {blockNumber}, dispersedCharge = {dispersedCharge}");
-                    string xmlContent = BlastBlockGenerator.GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
+                    string xmlContent = XmlGenerator.GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
                                                          pitName, level, blockNumber, dispersedCharge);
 
                     string successGenerationMessage = "XML успешно сгенерирован!";
