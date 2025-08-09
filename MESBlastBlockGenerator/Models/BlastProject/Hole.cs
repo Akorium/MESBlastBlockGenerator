@@ -11,26 +11,7 @@ namespace MESBlastBlockGenerator.Models.BlastProject
 
         [XmlArray("planChargeMaterials")]
         [XmlArrayItem("material")]
-        public List<Material> PlanChargeMaterials { get; set; } = 
-            [
-                new(), 
-                new Material 
-                { 
-                    MaterialCode = "1025160",
-                    MaterialShortName = "Вещество взрывчатое Березит Э-70",
-                    IsExplosive = "true",
-                    MaterialDensity = "1200",
-                    CupDensity = "0",
-                    Amounts = 
-                    [
-                        new Amount
-                        {
-                            Value = "500",
-                            Priority = "1"
-                        }
-                    ]
-                }
-            ];
+        public required List<Material> PlanChargeMaterials { get; set; }
 
         [XmlElement(ElementName = "stemming_length_plan")]
         public StemmingLengthPlan StemmingLengthPlan { get; set; } = new();
