@@ -38,14 +38,14 @@ namespace MESBlastBlockGenerator
         /// <param name="blockNumber">Порядковый номер блока</param>
         /// <returns>XML в формате string</returns>
         public static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
-                                       string pitName, int level, int blockNumber)
+                                       string pitName, int level, int blockNumber, bool dispersedCharge)
         {
             //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
             var mesPmv = new MesPmv
             {
                 HolesInBlastProject = new HolesInBlastProject
                 {
-                    Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber)
+                    Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge)
                 }
             };
             logger.Debug("Генерация скважин завершена");
@@ -116,7 +116,7 @@ namespace MESBlastBlockGenerator
         /// <param name="level">Уровень проекта</param>
         /// <param name="blockNumber">Порядковый номер блока</param>
         /// <returns>Список объектов Hole</returns>
-        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber)
+        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber, bool dispersedCharge)
         {
             logger.Debug("Инициализирована генерация скважин");
             string blastProjectId = Guid.NewGuid().ToString();
@@ -131,7 +131,7 @@ namespace MESBlastBlockGenerator
                 {
                     (double x, double y) = CalculateHoleCoords(baseX, baseY, distance, cosAngle, sinAngle, row, col);
 
-                    var hole = GenerateHole(pitName, level, blockNumber, blastProjectId, row, col, x, y);
+                    var hole = GenerateHole(pitName, level, blockNumber, blastProjectId, row, col, x, y, dispersedCharge);
                     holes.Add(hole);
                 }
             }
@@ -150,32 +150,71 @@ namespace MESBlastBlockGenerator
         /// <param name="x">X координата скважины</param>
         /// <param name="y">Y координата скважины</param>
         /// <returns>Объект Hole</returns>
-        private static Hole GenerateHole(string pitName, int level, int blockNumber, string blastProjectId, int row, int col, double x, double y)
+        private static Hole GenerateHole(string pitName, int level, int blockNumber, string blastProjectId, int row, int col, double x, double y, bool dispersedCharge)
         {
-            return new Hole
+            HoleItem holeItem = new()
             {
-                HoleItem = new HoleItem
-                {
-                    //MES передаёт все поля в string
-                    BlastProjectId = blastProjectId,
-                    HoleId = Guid.NewGuid().ToString(),
-                    HoleNumber = $"{row:D2}{col:D2}",
-                    PitCode = pitName,
-                    PitName = pitName,
-                    LevelCode = $"{pitName}{level}",
-                    LevelName = $"{level}",
-                    BlockCode = $"{pitName}{level}-{blockNumber}",
-                    BlockName = $"{level}-{blockNumber}",
-                    BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
-                    BlockDrillingName = $"{level}-{blockNumber}",
-                    BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
-                    BlockBlastingName = $"{level}-{blockNumber}",
-                    X = x.ToString(CultureInfo.InvariantCulture),
-                    Y = y.ToString(CultureInfo.InvariantCulture),
-                    XFact = x.ToString(CultureInfo.InvariantCulture),
-                    YFact = y.ToString(CultureInfo.InvariantCulture)
-                }
+                //MES передаёт все поля в string
+                BlastProjectId = blastProjectId,
+                HoleId = Guid.NewGuid().ToString(),
+                HoleNumber = $"{row:D2}{col:D2}",
+                PitCode = pitName,
+                PitName = pitName,
+                LevelCode = $"{pitName}{level}",
+                LevelName = $"{level}",
+                BlockCode = $"{pitName}{level}-{blockNumber}",
+                BlockName = $"{level}-{blockNumber}",
+                BlockDrillingCode = $"{pitName}{pitName}{level}{level}-{blockNumber}Drill",
+                BlockDrillingName = $"{level}-{blockNumber}",
+                BlockBlastingCode = $"{pitName}{level}-{blockNumber}Blast",
+                BlockBlastingName = $"{level}-{blockNumber}",
+                X = x.ToString(CultureInfo.InvariantCulture),
+                Y = y.ToString(CultureInfo.InvariantCulture),
+                XFact = x.ToString(CultureInfo.InvariantCulture),
+                YFact = y.ToString(CultureInfo.InvariantCulture)
             };
+            if (dispersedCharge)
+            {
+                List<Material> materials =
+                [
+                    new(),
+                    new Material
+                    {
+                        MaterialCode = "1025160",
+                        MaterialShortName = "Вещество взрывчатое Березит Э-70",
+                        IsExplosive = "true",
+                        MaterialDensity = "1200",
+                        CupDensity = "0",
+                        Amounts =
+                        [
+                            new Amount
+                            {
+                                Value = "500",
+                                Priority = "1"
+                            },
+                            new Amount
+                            {
+                                Value = "600",
+                                Priority = "2"
+                            }
+                        ]
+                    }
+                ];
+                return new Hole
+                {
+                    HoleItem = holeItem,
+                    PlanChargeMaterials = materials,
+                };
+            }
+            else
+            {
+                return new Hole
+                {
+                    HoleItem = holeItem,
+                };
+            }
+
+            
         }
 
         /// <summary>

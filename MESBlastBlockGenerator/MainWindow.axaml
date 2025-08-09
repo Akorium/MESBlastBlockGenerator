@@ -72,15 +72,20 @@
       <TextBlock Text="Номер блока:" Classes="input-label"/>
       <TextBox x:Name="BlockNumberTextBox" Text="102" Classes="input"/>
     </StackPanel>
+    
+    <StackPanel Grid.Row="10" Classes="input-row">
+      <TextBlock Text="Рассредоточенный заряд:" Classes="input-label"/>
+      <CheckBox x:Name="DispersedChargeCheckBox" Margin="90,0" />
+    </StackPanel>
 
-    <Button x:Name="GenerateButton" Grid.Row="10" Content="Сгенерировать XML" Click="OnGenerateClick" HorizontalAlignment="Center" Margin="0,10"/>
+    <Button x:Name="GenerateButton" Grid.Row="11" Content="Сгенерировать XML" Click="OnGenerateClick" HorizontalAlignment="Center" Margin="0,10"/>
 
-    <TextBlock x:Name="StatusText" Grid.Row="11" Text="" Foreground="Green" HorizontalAlignment="Center"/>
+    <TextBlock x:Name="StatusText" Grid.Row="12" Text="" Foreground="Green" HorizontalAlignment="Center"/>
 
-    <TextBox x:Name="XmlOutput" Grid.Row="12" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" 
+    <TextBox x:Name="XmlOutput" Grid.Row="13" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" 
              ScrollViewer.HorizontalScrollBarVisibility="Auto"  Margin="0,10" Height="200"/>
 
-    <Button Grid.Row="13" Content="Копировать в буфер обмена" Click="OnCopyClick"
+    <Button Grid.Row="14" Content="Копировать в буфер обмена" Click="OnCopyClick"
             HorizontalAlignment="Center" Margin="0,10" Padding="20,5"/>
   </Grid>
 </Window>

@@ -35,14 +35,16 @@ namespace MESBlastBlockGenerator
             StatusText.Foreground = Brushes.Green;
             StatusText.Text = "";
 
+            bool dispersedCharge = DispersedChargeCheckBox.IsChecked ?? false;
+
             if (ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
                               out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage))
             {
                 try
                 {
-                    logger.Debug($"Попытка генерации XML с maxRow = {maxRow}, maxCol = {maxCol}, baseX = {baseX}, baseY = {baseY}, distance = {distance}, pitName = {pitName}, level = {level}, blockNumber = {blockNumber}");
+                    logger.Debug($"Попытка генерации XML с maxRow = {maxRow}, maxCol = {maxCol}, baseX = {baseX}, baseY = {baseY}, distance = {distance}, pitName = {pitName}, level = {level}, blockNumber = {blockNumber}, dispersedCharge = {dispersedCharge}");
                     string xmlContent = BlastBlockGenerator.GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
-                                                         pitName, level, blockNumber);
+                                                         pitName, level, blockNumber, dispersedCharge);
 
                     string successGenerationMessage = "XML успешно сгенерирован!";
                     logger.Info(successGenerationMessage);

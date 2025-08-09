@@ -27,11 +27,6 @@ namespace MESBlastBlockGenerator.Models.BlastProject
                         {
                             Value = "500",
                             Priority = "1"
-                        },
-                        new Amount
-                        {
-                            Value = "600",
-                            Priority = "2"
                         }
                     ]
                 }
