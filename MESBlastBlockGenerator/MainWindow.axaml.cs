@@ -1,9 +1,12 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using MESBlastBlockGenerator.DTO;
+using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
 using NLog;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Reflection;
 
 namespace MESBlastBlockGenerator
@@ -12,9 +15,7 @@ namespace MESBlastBlockGenerator
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly AppSettings appSettings = SettingsManager.LoadSettings();
-
-        // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
-        private const int maxWells = 5000;
+        private InputParameters? inputs;
 
         public MainWindow()
         {
@@ -27,6 +28,7 @@ namespace MESBlastBlockGenerator
             var version = Assembly.GetEntryAssembly()?.GetName().Version;
             string title = $"MESBlastBlockGenerator v{version?.Major}.{version?.Minor}.{version?.Build}";
             this.Title = title;
+
             MaxRowTextBox.Text = appSettings.MaxRow.ToString();
             MaxColTextBox.Text = appSettings.MaxCol.ToString();
             RotationAngleTextBox.Text = appSettings.RotationAngle.ToString();
@@ -48,55 +50,70 @@ namespace MESBlastBlockGenerator
         private void OnGenerateClick(object sender, RoutedEventArgs e)
         {
             logger.Info("Инициализирована генерация XML");
+            ClearValidationErrors();
             StatusText.Foreground = Brushes.Green;
             StatusText.Text = "";
 
-            bool dispersedCharge = DispersedChargeCheckBox.IsChecked ?? false;
-
-
-            if (ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
-                              out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage))
+            try
             {
-                try
-                {
-                    logger.Debug($"Попытка генерации XML с maxRow = {maxRow}, maxCol = {maxCol}, baseX = {baseX}, baseY = {baseY}, distance = {distance}, pitName = {pitName}, level = {level}, blockNumber = {blockNumber}, dispersedCharge = {dispersedCharge}");
-                    string xmlContent = XmlGenerator.GenerateXmlContent(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance,
-                                                         pitName, level, blockNumber, dispersedCharge);
+                inputs = ValidateInputs();
+                logger.Debug($"Попытка генерации XML с maxRow = {inputs.MaxRow}, maxCol = {inputs.MaxCol}, baseX = {inputs.BaseX}, baseY = {inputs.BaseY}, distance = {inputs.Distance}, pitName = {inputs.PitName}, level = {inputs.Level}, blockNumber = {inputs.BlockNumber}, dispersedCharge = {inputs.DispersedCharge}");
+                string xmlContent = XmlGenerationHelper.GenerateXmlContent(inputs);
 
-                    string successGenerationMessage = "XML успешно сгенерирован!";
-                    logger.Info(successGenerationMessage);
-                    StatusText.Text = successGenerationMessage;
-                    XmlOutput.Text = xmlContent;
-                    UpdateSettings(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge);
-                }
-                catch (Exception ex)
-                {
-                    string generationError = $"Ошибка генерации: {ex.Message}";
-                    StatusText.Text = generationError;
-                    StatusText.Foreground = Brushes.Red;
-                    logger.Error(generationError);
-                }
+                UpdateSettings(inputs);
+                XmlOutput.Text = xmlContent;
+                string successGenerationMessage = "XML успешно сгенерирован!";
+                ShowSuccess(successGenerationMessage);
             }
-            else
+            catch (ValidationException ex)
             {
-                StatusText.Text = errorMessage;
-                StatusText.Foreground = Brushes.Red;
-                logger.Error(errorMessage);
+                string validationError = $"Ошибка валидации: {ex.Message}";
+                ShowError(validationError);
+            }
+            catch (Exception ex)
+            {
+                string generationError = $"Ошибка генерации: {ex.Message}";
+                ShowError(generationError);
             }
         }
 
-        private void UpdateSettings(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber, bool dispersedCharge)
+        private void ClearValidationErrors()
         {
-            appSettings.MaxRow = maxRow;
-            appSettings.MaxCol = maxCol;
-            appSettings.RotationAngle = rotationAngleDegrees;
-            appSettings.BaseX = baseX;
-            appSettings.BaseY = baseY;
-            appSettings.Distance = distance;
-            appSettings.PitName = pitName;
-            appSettings.Level = level;
-            appSettings.BlockNumber = blockNumber;
-            appSettings.DispersedCharge = dispersedCharge;
+            ValidationHelper.ClearValidation(MaxRowTextBox, MaxColTextBox, RotationAngleTextBox, BaseXTextBox, BaseYTextBox,
+                DistanceTextBox, PitNameTextBox, LevelTextBox, BlockNumberTextBox);
+        }
+
+        private InputParameters ValidateInputs()
+        {
+            var inputs = new InputParameters
+            {
+                MaxRow = ValidationHelper.ValidatePositiveInt(MaxRowTextBox, FieldNames.Descriptions[Fields.MaxRow]),
+                MaxCol = ValidationHelper.ValidatePositiveInt(MaxColTextBox, FieldNames.Descriptions[Fields.MaxCol]),
+                RotationAngle = ValidationHelper.ValidateDouble(RotationAngleTextBox, FieldNames.Descriptions[Fields.RotationAngle]),
+                BaseX = ValidationHelper.ValidateDouble(BaseXTextBox, FieldNames.Descriptions[Fields.BaseX]),
+                BaseY = ValidationHelper.ValidateDouble(BaseYTextBox, FieldNames.Descriptions[Fields.BaseY]),
+                Distance = ValidationHelper.ValidateDouble(DistanceTextBox, FieldNames.Descriptions[Fields.Distance]),
+                PitName = ValidationHelper.ValidateString(PitNameTextBox, FieldNames.Descriptions[Fields.PitName]),
+                Level = ValidationHelper.ValidatePositiveInt(LevelTextBox, FieldNames.Descriptions[Fields.Level]),
+                BlockNumber = ValidationHelper.ValidatePositiveInt(BlockNumberTextBox, FieldNames.Descriptions[Fields.BlockNumber]),
+                DispersedCharge = DispersedChargeCheckBox.IsChecked ?? false
+            };
+            ValidationHelper.ValidateWellsCount([MaxRowTextBox, MaxColTextBox], inputs.MaxCol, inputs.MaxRow);
+            return inputs;
+        }
+
+        private void UpdateSettings(InputParameters inputs)
+        {
+            appSettings.MaxRow = inputs.MaxRow;
+            appSettings.MaxCol = inputs.MaxCol;
+            appSettings.RotationAngle = inputs.RotationAngle;
+            appSettings.BaseX = inputs.BaseX;
+            appSettings.BaseY = inputs.BaseY;
+            appSettings.Distance = inputs.Distance;
+            appSettings.PitName = inputs.PitName;
+            appSettings.Level = inputs.Level;
+            appSettings.BlockNumber = inputs.BlockNumber;
+            appSettings.DispersedCharge = inputs.DispersedCharge;
             SettingsManager.SaveSettings(appSettings);
         }
 
@@ -117,139 +134,36 @@ namespace MESBlastBlockGenerator
                     try
                     {
                         await topLevel.Clipboard.SetTextAsync(XmlOutput.Text);
-                        StatusText.Text = "XML скопирован в буфер обмена!";
-                        StatusText.Foreground = Brushes.Green;
+                        string copySuccess = "XML скопирован в буфер обмена!";
+                        ShowSuccess(copySuccess);
                     }
                     catch (Exception ex)
                     {
                         string copyError = $"Ошибка копирования: {ex.Message}";
-                        StatusText.Text = copyError;
-                        StatusText.Foreground = Brushes.Red;
-                        logger.Error(copyError);
+                        ShowError(copyError);
                     }
                 }
             }
         }
-        protected override void OnClosed(EventArgs e)
+
+        private void ShowSuccess(string message)
         {
-            if (ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
-                              out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage))
-            {
-                bool dispersedCharge = DispersedChargeCheckBox.IsChecked ?? false;
-                UpdateSettings(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge);
-            }
-            else
-            {
-                logger.Error($"Ошибка сохранения настроек: {errorMessage}");
-            }
-            base.OnClosed(e);
+            StatusText.Text = message;
+            logger.Info(message);
+            StatusText.Foreground = Brushes.Green;
+        }
+        private void ShowError(string generationError)
+        {
+            StatusText.Text = generationError;
+            StatusText.Foreground = Brushes.Red;
+            logger.Error(generationError);
         }
 
-        /// <summary>
-        /// Валидация входных параметров
-        /// </summary>
-        /// <param name="maxRow">Количество рядов скважин</param>
-        /// <param name="maxCol">Количество столбцов скважин</param>
-        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин</param>
-        /// <param name="baseX">X первой скважины блока</param>
-        /// <param name="baseY">Y первой скважины блока</param>
-        /// <param name="distance">Расстояние между скважинами</param>
-        /// <param name="pitName">Название карьера</param>
-        /// <param name="level">Уровень проекта</param>
-        /// <param name="blockNumber">Порядковый номер блока</param>
-        /// <param name="errorMessage"></param>
-        /// <returns></returns>
-        private bool ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
-                          out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage)
+        protected override void OnClosed(EventArgs e)
         {
-            maxRow = maxCol = level = blockNumber = 0;
-            rotationAngleDegrees = baseX = baseY = distance = 0;
-            errorMessage = pitName = string.Empty;
-
-            MaxRowTextBox.Classes.Remove("invalid");
-            MaxColTextBox.Classes.Remove("invalid");
-            RotationAngleTextBox.Classes.Remove("invalid");
-            BaseXTextBox.Classes.Remove("invalid");
-            BaseYTextBox.Classes.Remove("invalid");
-            DistanceTextBox.Classes.Remove("invalid");
-            LevelTextBox.Classes.Remove("invalid");
-            PitNameTextBox.Classes.Remove("invalid");
-            BlockNumberTextBox.Classes.Remove("invalid");
-
-            if (!int.TryParse(MaxRowTextBox.Text, out maxRow) || maxRow <= 0)
-            {
-                MaxRowTextBox.Classes.Add("invalid");
-                errorMessage = "Количество рядов должно быть положительным числом";
-                return false;
-            }
-
-            if (!int.TryParse(MaxColTextBox.Text, out maxCol) || maxCol <= 0)
-            {
-                MaxColTextBox.Classes.Add("invalid");
-                errorMessage = "Количество столбцов должно быть положительным числом";
-                return false;
-            }
-
-            if (!double.TryParse(RotationAngleTextBox.Text, out rotationAngleDegrees))
-            {
-                RotationAngleTextBox.Classes.Add("invalid");
-                errorMessage = "Некорректное значение угла поворота сетки";
-                return false;
-            }
-
-            if (!double.TryParse(BaseXTextBox.Text, out baseX))
-            {
-                BaseXTextBox.Classes.Add("invalid");
-                errorMessage = "Некорректное значение координаты X";
-                return false;
-            }
-
-            if (!double.TryParse(BaseYTextBox.Text, out baseY))
-            {
-                BaseYTextBox.Classes.Add("invalid");
-                errorMessage = "Некорректное значение координаты Y";
-                return false;
-            }
-
-            if (!double.TryParse(DistanceTextBox.Text, out distance) || distance <= 0)
-            {
-                DistanceTextBox.Classes.Add("invalid");
-                errorMessage = "Расстояние между скважинами должно быть положительным числом";
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(PitNameTextBox.Text))
-            {
-                PitNameTextBox.Classes.Add("invalid");
-                errorMessage = "Название карьера не может быть пустым";
-                return false;
-            }
-            pitName = PitNameTextBox.Text;
-
-            if (!int.TryParse(LevelTextBox.Text, out level))
-            {
-                LevelTextBox.Classes.Add("invalid");
-                errorMessage = "Некорректное значение уровня";
-                return false;
-            }
-
-            if (!int.TryParse(BlockNumberTextBox.Text, out blockNumber))
-            {
-                BlockNumberTextBox.Classes.Add("invalid");
-                errorMessage = "Некорректное значение номера блока";
-                return false;
-            }
-            
-            int totalWells = maxCol * maxRow;
-            if (totalWells > maxWells)
-            {
-                MaxRowTextBox.Classes.Add("invalid");
-                MaxColTextBox.Classes.Add("invalid");
-                errorMessage = $"Общее количество скважин ({totalWells}) превышает максимально допустимое ({maxWells})";
-                return false;
-            }
-
-            return true;
+            if (inputs != null)
+                UpdateSettings(inputs);
+            base.OnClosed(e);
         }
     }
 }

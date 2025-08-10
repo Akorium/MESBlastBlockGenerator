@@ -8,35 +8,35 @@ namespace MESBlastBlockGenerator.Helpers
         // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
         private const int maxWellsCount = 5000;
 
-        public static bool ValidatePositiveInt(TextBox box, out int value, string fieldName)
+        public static int ValidatePositiveInt(TextBox box, string fieldName)
         {
-            if (!int.TryParse(box.Text, out value) || value <= 0)
+            if (!int.TryParse(box.Text, out int value) || value <= 0)
             {
                 box.Classes.Add("invalid");
                 throw new ValidationException($"{fieldName} должно быть целым положительным числом");
             }
-            return true;
+            return value;
         }
-        public static bool ValidateDouble(TextBox box, out double value, string fieldName)
+        public static double ValidateDouble(TextBox box, string fieldName)
         {
-            if (!double.TryParse(box.Text, out value))
+            if (!double.TryParse(box.Text, out double value))
             {
                 box.Classes.Add("invalid");
                 throw new ValidationException($"{fieldName} имеет некорректное значение");
             }
-            return true;
+            return value;
         }
-        public static bool ValidateString(TextBox box, out string value, string fieldName)
+        public static string ValidateString(TextBox box, string fieldName)
         {
             if (string.IsNullOrWhiteSpace(box.Text))
             {
                 box.Classes.Add("invalid");
                 throw new ValidationException($"{fieldName} имеет некорректное значение");
             }
-            value = box.Text;
-            return true;
+            string value = box.Text;
+            return value;
         }
-        public static bool ValidateWellsCount(TextBox[] textBoxes, int maxCol, int maxRow)
+        public static void ValidateWellsCount(TextBox[] textBoxes, int maxCol, int maxRow)
         {
             if (maxCol * maxRow > maxWellsCount)
             {
@@ -46,7 +46,6 @@ namespace MESBlastBlockGenerator.Helpers
                 }
                 throw new ValidationException($"Превышено допустимое количество скважин: {maxWellsCount}");
             }
-            return true;
         }
         public static void ClearValidation(params Control[] controls)
         {

@@ -8,7 +8,7 @@
         public double BaseX { get; set; }
         public double BaseY { get; set; }
         public double Distance { get; set; }
-        public string PitName { get; set; }
+        public string PitName { get; set; } = "";
         public int Level { get; set; }
         public int BlockNumber { get; set; }
         public bool DispersedCharge { get; set; }

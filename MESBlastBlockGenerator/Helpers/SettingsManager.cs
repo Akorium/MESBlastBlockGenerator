@@ -1,10 +1,11 @@
 ﻿using MESBlastBlockGenerator.Models;
+using NLog;
 using System;
 using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Helpers
 {
     public static class SettingsManager
     {
@@ -12,6 +13,7 @@ namespace MESBlastBlockGenerator
         Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                    "MESBlastGenerator", "settings.json");
         private static readonly JsonSerializerOptions jsonSerializerOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping, };
+        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         public static AppSettings LoadSettings()
         {
@@ -23,7 +25,11 @@ namespace MESBlastBlockGenerator
                     return JsonSerializer.Deserialize<AppSettings>(json);
                 }
             }
-            catch { /* Логирование ошибки */ }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Ошибка загрузки настроек");
+                throw;
+            }
 
             return new AppSettings();
         }
@@ -35,7 +41,11 @@ namespace MESBlastBlockGenerator
                 var json = JsonSerializer.Serialize(settings, jsonSerializerOptions);
                 File.WriteAllText(SettingsPath, json);
             }
-            catch { /* Логирование ошибки */ }
+            catch (Exception ex)
+            {
+                logger.Error(ex, "Ошибка сохранения настроек");
+                throw;
+            }
         }
     }
 }

@@ -1,36 +1,28 @@
-﻿using MESBlastBlockGenerator.Models.BlastProject;
+﻿using MESBlastBlockGenerator.DTO;
+using MESBlastBlockGenerator.Models.BlastProject;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Helpers
 {
-    public class MesPmvMessageGenerator
+    public class MesPmvMessageGenerationHelper
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Генерирует объект типа MesPmv на основе переданных параметров.
         /// </summary>
-        /// <param name="maxRow">Количество рядов скважин в ПМВ.</param>
-        /// <param name="maxCol">Количество столбцов скважин в ПМВ.</param>
-        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин в ПМВ.</param>
-        /// <param name="baseX">X-координата первой скважины.</param>
-        /// <param name="baseY">Y-координата первой скважины.</param>
-        /// <param name="distance">Расстояние между скважинами.</param>
-        /// <param name="pitName">Название карьера.</param>
-        /// <param name="level">Уровень проекта.</param>
-        /// <param name="blockNumber">Номер блока.</param>
-        /// <param name="dispersedCharge">Является ли заряд рассредоточенным.</param>
+        /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Объект MesPmv для последующей сериализации.</returns>
-        public static MesPmv GenerateMesPmvMessage(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber, bool dispersedCharge)
+        public static MesPmv GenerateMesPmvMessage(InputParameters inputs)
         {
             var mesPmv = new MesPmv
             {
                 HolesInBlastProject = new HolesInBlastProject
                 {
-                    Holes = GenerateHoles(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge)
+                    Holes = GenerateHoles(inputs)
                 }
             };
             return mesPmv;
@@ -39,34 +31,25 @@ namespace MESBlastBlockGenerator
         /// <summary>
         /// Генерирует список скважин для блока
         /// </summary>
-        /// <param name="maxRow">Количество рядов скважин</param>
-        /// <param name="maxCol">Количество столбцов скважин</param>
-        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин</param>
-        /// <param name="baseX">X первой скважины блока</param>
-        /// <param name="baseY">Y первой скважины блока</param>
-        /// <param name="distance">Расстояние между скважинами</param>
-        /// <param name="pitName">Название карьера</param>
-        /// <param name="level">Уровень проекта</param>
-        /// <param name="blockNumber">Порядковый номер блока</param>
-        /// /// <param name="dispersedCharge">Является ли заряд рассредоточенным.</param>
+        /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Список объектов Hole</returns>
-        private static List<Hole> GenerateHoles(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber, bool dispersedCharge)
+        private static List<Hole> GenerateHoles(InputParameters inputs)
         {
             logger.Debug("Инициализирована генерация скважин");
             string blastProjectId = Guid.NewGuid().ToString();
-            double rotationAngleRad = rotationAngleDegrees * Math.PI / 180.0;
+            double rotationAngleRad = inputs.RotationAngle * Math.PI / 180.0;
             double cosAngle = Math.Cos(rotationAngleRad);
             double sinAngle = Math.Sin(rotationAngleRad);
 
-            List<Material> materials = GenerateMaterials(dispersedCharge);
-            var holes = new List<Hole>(maxRow * maxCol);
-            for (int row = 0; row < maxRow; row++)
+            List<Material> materials = GenerateMaterials(inputs.DispersedCharge);
+            var holes = new List<Hole>(inputs.MaxCol * inputs.MaxRow);
+            for (int row = 0; row < inputs.MaxRow; row++)
             {
-                for (int col = 0; col < maxCol; col++)
+                for (int col = 0; col < inputs.MaxCol; col++)
                 {
-                    (double x, double y) = CalculateHoleCoords(baseX, baseY, distance, cosAngle, sinAngle, row, col);
+                    (double x, double y) = CalculateHoleCoords(inputs, cosAngle, sinAngle, row, col);
 
-                    var hole = GenerateHole(blastProjectId, row, col, pitName, level, blockNumber, x, y, materials);
+                    var hole = GenerateHole(blastProjectId, row, col, inputs, x, y, materials);
                     holes.Add(hole);
                 }
             }
@@ -79,17 +62,15 @@ namespace MESBlastBlockGenerator
         /// <param name="blastProjectId">GUID ПМВ.</param>
         /// <param name="row">Ряд скважины в ПМВ.</param>
         /// <param name="col">Столбец скважины в ПМВ.</param>
-        /// <param name="pitName">Название карьера.</param>
-        /// <param name="level">Уровень проекта.</param>
-        /// <param name="blockNumber">Номер блока.</param>
+        /// <param name="inputs">Объект типа InputParameters</param>
         /// <param name="x">Координата X скважины.</param>
         /// <param name="y">Координата Y скважины.</param>
         /// <param name="materials">Список взрывчатых веществ.</param>
         /// <returns>Объект Hole, содержащий необходимые данные.</returns>
-        private static Hole GenerateHole(string blastProjectId, int row, int col, string pitName, int level, int blockNumber, double x, double y, List<Material> materials)
+        private static Hole GenerateHole(string blastProjectId, int row, int col, InputParameters inputs, double x, double y, List<Material> materials)
         {
-            string levelCode = $"{pitName}{level}";
-            string blockName = $"{level}-{blockNumber}";
+            string levelCode = $"{inputs.PitName}{inputs.Level}";
+            string blockName = $"{inputs.Level}-{inputs.BlockNumber}";
 
             return new Hole
             {
@@ -99,15 +80,15 @@ namespace MESBlastBlockGenerator
                     BlastProjectId = blastProjectId,
                     HoleId = Guid.NewGuid().ToString(),
                     HoleNumber = $"{row:D2}{col:D2}",
-                    PitCode = pitName,
-                    PitName = pitName,
+                    PitCode = inputs.PitName,
+                    PitName = inputs.PitName,
                     LevelCode = $"{levelCode}",
-                    LevelName = $"{level}",
-                    BlockCode = $"{levelCode}-{blockNumber}",
+                    LevelName = $"{inputs.Level}",
+                    BlockCode = $"{levelCode}-{inputs.BlockNumber}",
                     BlockName = $"{blockName}",
-                    BlockDrillingCode = $"{pitName}{levelCode}{blockName}Drill",
+                    BlockDrillingCode = $"{inputs.PitName}{levelCode}{blockName}Drill",
                     BlockDrillingName = $"{blockName}",
-                    BlockBlastingCode = $"{pitName}{blockName}Blast",
+                    BlockBlastingCode = $"{inputs.PitName}{blockName}Blast",
                     BlockBlastingName = $"{blockName}",
                     X = x.ToString(CultureInfo.InvariantCulture),
                     Y = y.ToString(CultureInfo.InvariantCulture),
@@ -163,24 +144,22 @@ namespace MESBlastBlockGenerator
         /// <summary>
         /// Расчитывает координаты скважины
         /// </summary>
-        /// <param name="baseX">X первой скважины блока</param>
-        /// <param name="baseY">Y первой скважины блока</param>
-        /// <param name="distance">Расстояние между скважинами</param>
+        /// <param name="inputs">Объект типа InputParameters</param>
         /// <param name="cosAngle">Косинус угла поворота блока</param>
         /// <param name="sinAngle">Синус угла поворота блока</param>
         /// <param name="row">Ряд скважины</param>
         /// <param name="col">Столбец скважины</param>
         /// <returns>Координаты X и Y</returns>
-        private static (double x, double y) CalculateHoleCoords(double baseX, double baseY, double distance, double cosAngle, double sinAngle, int row, int col)
+        private static (double x, double y) CalculateHoleCoords(InputParameters inputs, double cosAngle, double sinAngle, int row, int col)
         {
-            double x = baseX + (col) * distance;
-            double y = baseY + (row) * distance;
+            double x = inputs.BaseX + col * inputs.Distance;
+            double y = inputs.BaseY + row * inputs.Distance;
 
-            double relX = x - baseX;
-            double relY = y - baseY;
+            double relX = x - inputs.BaseX;
+            double relY = y - inputs.BaseY;
 
-            x = baseX + relX * cosAngle - relY * sinAngle;
-            y = baseY + relX * sinAngle + relY * cosAngle;
+            x = inputs.BaseX + relX * cosAngle - relY * sinAngle;
+            y = inputs.BaseY + relX * sinAngle + relY * cosAngle;
 
             return (x, y);
         }

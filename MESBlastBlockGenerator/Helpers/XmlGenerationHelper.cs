@@ -1,4 +1,5 @@
-﻿using MESBlastBlockGenerator.Models.BlastProject;
+﻿using MESBlastBlockGenerator.DTO;
+using MESBlastBlockGenerator.Models.BlastProject;
 using MESBlastBlockGenerator.Models.SOAP;
 using NLog;
 using System;
@@ -7,12 +8,11 @@ using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.Helpers
 {
-    public class XmlGenerator
+    public class XmlGenerationHelper
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        private readonly MesPmvMessageGenerator mesPmvMessageGenerator = new();
         private static readonly XmlSerializer _mesPmvSerializer = new(typeof(MesPmv));
         private static readonly XmlSerializer _envelopeSerializer = new(typeof(Envelope));
         private static readonly XmlSerializerNamespaces _soapNamespaces = new(
@@ -31,22 +31,12 @@ namespace MESBlastBlockGenerator
         /// <summary>
         /// Генерирует XML передаваемый MES.
         /// </summary>
-        /// <param name="maxRow">Количество рядов скважин в ПМВ.</param>
-        /// <param name="maxCol">Количество столбцов скважин в ПМВ.</param>
-        /// <param name="rotationAngleDegrees">Угол поворота сетки скважин в ПМВ.</param>
-        /// <param name="baseX">X-координата первой скважины.</param>
-        /// <param name="baseY">Y-координата первой скважины.</param>
-        /// <param name="distance">Расстояние между скважинами.</param>
-        /// <param name="pitName">Название карьера.</param>
-        /// <param name="level">Уровень проекта.</param>
-        /// <param name="blockNumber">Номер блока.</param>
-        /// <param name="dispersedCharge">Является ли заряд рассредоточенным.</param>
+        /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Сгенерированное содержимое XML в виде строки.</returns>
-        public static string GenerateXmlContent(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance,
-                                       string pitName, int level, int blockNumber, bool dispersedCharge)
+        public static string GenerateXmlContent(InputParameters inputs)
         {
             //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
-            var mesPmv = MesPmvMessageGenerator.GenerateMesPmvMessage(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge);
+            var mesPmv = MesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
             logger.Debug("Сообщение mesPmv сгенерировано");
             var innerXml = Serialize(mesPmv, new XmlSerializerNamespaces());
             var envelope = new Envelope
