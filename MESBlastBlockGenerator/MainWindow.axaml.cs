@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Media;
+using MESBlastBlockGenerator.Models;
 using NLog;
 using System;
 using System.Reflection;
@@ -10,19 +11,35 @@ namespace MESBlastBlockGenerator
     public partial class MainWindow : Window
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-        
+        private readonly AppSettings appSettings = SettingsManager.LoadSettings();
+
         // Временное ограничение пока нет конкретных данных по максимальному возможному объёму блока
         private const int maxWells = 5000;
 
         public MainWindow()
         {
-            InitializeComponent();
+            InitializeComponent();          
+            ConfigureUI(appSettings);
+        }
 
+        private void ConfigureUI(AppSettings appSettings)
+        {
             var version = Assembly.GetEntryAssembly()?.GetName().Version;
             string title = $"MESBlastBlockGenerator v{version?.Major}.{version?.Minor}.{version?.Build}";
             this.Title = title;
+            MaxRowTextBox.Text = appSettings.MaxRow.ToString();
+            MaxColTextBox.Text = appSettings.MaxCol.ToString();
+            RotationAngleTextBox.Text = appSettings.RotationAngle.ToString();
+            BaseXTextBox.Text = appSettings.BaseX.ToString();
+            BaseYTextBox.Text = appSettings.BaseY.ToString();
+            DistanceTextBox.Text = appSettings.Distance.ToString();
+            PitNameTextBox.Text = appSettings.PitName;
+            LevelTextBox.Text = appSettings.Level.ToString();
+            BlockNumberTextBox.Text = appSettings.BlockNumber.ToString();
+            DispersedChargeCheckBox.IsChecked = appSettings.DispersedCharge;
             logger.Info($"{title} запущен");
         }
+
         /// <summary>
         /// Обработчик нажатия кнопки "Сгенерировать XML"
         /// </summary>
@@ -35,6 +52,7 @@ namespace MESBlastBlockGenerator
             StatusText.Text = "";
 
             bool dispersedCharge = DispersedChargeCheckBox.IsChecked ?? false;
+
 
             if (ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
                               out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage))
@@ -49,6 +67,7 @@ namespace MESBlastBlockGenerator
                     logger.Info(successGenerationMessage);
                     StatusText.Text = successGenerationMessage;
                     XmlOutput.Text = xmlContent;
+                    UpdateSettings(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge);
                 }
                 catch (Exception ex)
                 {
@@ -64,6 +83,21 @@ namespace MESBlastBlockGenerator
                 StatusText.Foreground = Brushes.Red;
                 logger.Error(errorMessage);
             }
+        }
+
+        private void UpdateSettings(int maxRow, int maxCol, double rotationAngleDegrees, double baseX, double baseY, double distance, string pitName, int level, int blockNumber, bool dispersedCharge)
+        {
+            appSettings.MaxRow = maxRow;
+            appSettings.MaxCol = maxCol;
+            appSettings.RotationAngle = rotationAngleDegrees;
+            appSettings.BaseX = baseX;
+            appSettings.BaseY = baseY;
+            appSettings.Distance = distance;
+            appSettings.PitName = pitName;
+            appSettings.Level = level;
+            appSettings.BlockNumber = blockNumber;
+            appSettings.DispersedCharge = dispersedCharge;
+            SettingsManager.SaveSettings(appSettings);
         }
 
         /// <summary>
@@ -95,6 +129,20 @@ namespace MESBlastBlockGenerator
                     }
                 }
             }
+        }
+        protected override void OnClosed(EventArgs e)
+        {
+            if (ValidateInputs(out int maxRow, out int maxCol, out double rotationAngleDegrees, out double baseX, out double baseY,
+                              out double distance, out string pitName, out int level, out int blockNumber, out string errorMessage))
+            {
+                bool dispersedCharge = DispersedChargeCheckBox.IsChecked ?? false;
+                UpdateSettings(maxRow, maxCol, rotationAngleDegrees, baseX, baseY, distance, pitName, level, blockNumber, dispersedCharge);
+            }
+            else
+            {
+                logger.Error($"Ошибка сохранения настроек: {errorMessage}");
+            }
+            base.OnClosed(e);
         }
 
         /// <summary>
