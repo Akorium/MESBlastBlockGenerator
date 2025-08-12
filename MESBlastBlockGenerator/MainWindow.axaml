@@ -2,9 +2,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
-        x:Class="MESBlastBlockGenerator.MainWindow"
-        Background="LightGray">
+        xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600" Background="LightGray"
+        x:Class="MESBlastBlockGenerator.MainWindow">
   
   <Window.Styles>
     <Style Selector="TextBlock.input-label">
@@ -15,6 +15,15 @@
       <Setter Property="Width" Value="200"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
     </Style>
+    <Style Selector="Border.texteditor">
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderBrush" Value="Black"/>
+      <Setter Property="Background" Value="#e5e5e5"/>
+      <Setter Property="CornerRadius" Value="3"/>
+    </Style>
+    <Style Selector="Button.button">
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+    </Style>
     <Style Selector="StackPanel.input-row">
       <Setter Property="Orientation" Value="Horizontal"/>
       <Setter Property="Spacing" Value="10"/>
@@ -23,9 +32,19 @@
       <Setter Property="Background" Value="#FFFFE0E0"/>
       <Setter Property="BorderBrush" Value="Red"/>
     </Style>
+    <Style Selector="TextBlock.status-text">
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+     </Style>
+    <Style Selector="AvaloniaEdit|TextEditor.xml-output">
+      <Setter Property="IsReadOnly" Value="True"/>
+      <Setter Property="WordWrap" Value="True"/>
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
+      <Setter Property="SyntaxHighlighting" Value="XML"/>
+     </Style> 
   </Window.Styles>
     
-  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto">
+  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
     <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20"/>
 
     <StackPanel Grid.Row="1" Classes="input-row">
@@ -76,16 +95,18 @@
     <StackPanel Grid.Row="10" Classes="input-row">
       <TextBlock Text="Рассредоточенный заряд:" Classes="input-label"/>
       <CheckBox x:Name="DispersedChargeCheckBox" Margin="90,0" />
+      <TextBlock Text="Масса заряда:" Classes="input-label"/>
+      <TextBox x:Name="ChargeMassTextBox" Text="500" Classes="input"/>
     </StackPanel>
 
-    <Button x:Name="GenerateButton" Grid.Row="11" Content="Сгенерировать XML" Click="OnGenerateClick" HorizontalAlignment="Center" Margin="0,10"/>
+    <Button x:Name="GenerateButton" Grid.Row="11" Content="Сгенерировать XML" Click="OnGenerateClick" Classes="button"/>
 
-    <TextBlock x:Name="StatusText" Grid.Row="12" Text="" Foreground="Green" HorizontalAlignment="Center"/>
+    <TextBlock x:Name="StatusText" Grid.Row="12" Classes="status-text"/>
 
-    <TextBox x:Name="XmlOutput" Grid.Row="13" AcceptsReturn="True" TextWrapping="Wrap" ScrollViewer.VerticalScrollBarVisibility="Auto" 
-             ScrollViewer.HorizontalScrollBarVisibility="Auto"  Margin="0,10" Height="200"/>
-
-    <Button Grid.Row="14" Content="Копировать в буфер обмена" Click="OnCopyClick"
-            HorizontalAlignment="Center" Margin="0,10" Padding="20,5"/>
+    <Border Grid.Row="13" Classes="texteditor">
+      <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output"/>
+    </Border>
+    
+    <Button x:Name="CopyButton" Grid.Row="14" Content="Копировать в буфер обмена" Click="OnCopyClick" Classes="button"/>
   </Grid>
 </Window>
