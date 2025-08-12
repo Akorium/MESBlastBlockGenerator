@@ -38,7 +38,6 @@
     <Style Selector="AvaloniaEdit|TextEditor.xml-output">
       <Setter Property="IsReadOnly" Value="True"/>
       <Setter Property="WordWrap" Value="True"/>
-      <Setter Property="HorizontalScrollBarVisibility" Value="Auto"/>
       <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
       <Setter Property="SyntaxHighlighting" Value="XML"/>
      </Style> 
