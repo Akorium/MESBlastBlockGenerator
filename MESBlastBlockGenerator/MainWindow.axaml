@@ -95,8 +95,6 @@
     <StackPanel Grid.Row="10" Classes="input-row">
       <TextBlock Text="Рассредоточенный заряд:" Classes="input-label"/>
       <CheckBox x:Name="DispersedChargeCheckBox" Margin="90,0" />
-      <TextBlock Text="Масса заряда:" Classes="input-label"/>
-      <TextBox x:Name="ChargeMassTextBox" Text="500" Classes="input"/>
     </StackPanel>
 
     <Button x:Name="GenerateButton" Grid.Row="11" Content="Сгенерировать XML" Click="OnGenerateClick" Classes="button"/>
