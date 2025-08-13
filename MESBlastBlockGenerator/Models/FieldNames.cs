@@ -11,10 +11,13 @@ namespace MESBlastBlockGenerator.Models
             [Fields.RotationAngle] = "Угол поворота сетки скважин",
             [Fields.BaseX] = "Координата X первой скважины",
             [Fields.BaseY] = "Координата Y первой скважины",
+            [Fields.BaseZ] = "Координата Z скважин",
             [Fields.Distance] = "Расстояние между скважинами",
             [Fields.PitName] = "Название карьера",
             [Fields.Level] = "Уровень проекта",
-            [Fields.BlockNumber] = "Номер блока"
+            [Fields.BlockNumber] = "Номер блока",
+            [Fields.MainChargeMass] = "Масса основного заряда",
+            [Fields.SecondaryChargeMass] = "Масса второго заряда"
         };
     }
 }

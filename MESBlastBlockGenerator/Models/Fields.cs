@@ -10,6 +10,9 @@
         Distance,
         PitName,
         Level,
-        BlockNumber
+        BlockNumber,
+        MainChargeMass,
+        SecondaryChargeMass,
+        BaseZ
     }
 }

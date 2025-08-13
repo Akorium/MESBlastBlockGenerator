@@ -41,7 +41,7 @@ namespace MESBlastBlockGenerator.Helpers
             double cosAngle = Math.Cos(rotationAngleRad);
             double sinAngle = Math.Sin(rotationAngleRad);
 
-            List<Material> materials = GenerateMaterials(inputs.DispersedCharge);
+            List<Material> materials = GenerateMaterials(inputs);
             var holes = new List<Hole>(inputs.MaxCol * inputs.MaxRow);
             for (int row = 0; row < inputs.MaxRow; row++)
             {
@@ -92,8 +92,10 @@ namespace MESBlastBlockGenerator.Helpers
                     BlockBlastingName = $"{blockName}",
                     X = x.ToString(CultureInfo.InvariantCulture),
                     Y = y.ToString(CultureInfo.InvariantCulture),
+                    Z = inputs.BaseZ.ToString(CultureInfo.InvariantCulture),
                     XFact = x.ToString(CultureInfo.InvariantCulture),
-                    YFact = y.ToString(CultureInfo.InvariantCulture)
+                    YFact = y.ToString(CultureInfo.InvariantCulture),
+                    ZFact = inputs.BaseZ.ToString(CultureInfo.InvariantCulture)
                 },
                 PlanChargeMaterials = materials
             };
@@ -104,7 +106,7 @@ namespace MESBlastBlockGenerator.Helpers
         /// </summary>
         /// <param name="dispersedCharge">Указывает, является ли заряд рассредоточенным.</param>
         /// <returns>Список объектов Material.</returns>
-        private static List<Material> GenerateMaterials(bool dispersedCharge)
+        private static List<Material> GenerateMaterials(InputParameters inputs)
         {
             var materials = new List<Material>();
             var exploder = new Material();
@@ -113,16 +115,16 @@ namespace MESBlastBlockGenerator.Helpers
             var amounts = new List<Amount>
             {
                 new() {
-                    Value = "500",
+                    Value = inputs.MainChargeMass.ToString(CultureInfo.InvariantCulture),
                     Priority = "1"
                 }
             };
-            if (dispersedCharge)
+            if (inputs.DispersedCharge)
             {
                 amounts.Add(
                     new Amount
                     {
-                        Value = "600",
+                        Value = inputs.SecondaryChargeMass.ToString(CultureInfo.InvariantCulture),
                         Priority = "2"
                     });
             }

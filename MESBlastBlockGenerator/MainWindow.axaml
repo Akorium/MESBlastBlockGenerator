@@ -3,7 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600" Background="LightGray"
+        mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="600" Background="LightGray"
         x:Class="MESBlastBlockGenerator.MainWindow">
   
   <Window.Styles>
@@ -24,9 +24,8 @@
     <Style Selector="Button.button">
       <Setter Property="HorizontalAlignment" Value="Center"/>
     </Style>
-    <Style Selector="StackPanel.input-row">
-      <Setter Property="Orientation" Value="Horizontal"/>
-      <Setter Property="Spacing" Value="10"/>
+    <Style Selector="Grid.row">
+      <Setter Property="VerticalAlignment" Value="Center"/>      
     </Style>
     <Style Selector="TextBox.invalid">
       <Setter Property="Background" Value="#FFFFE0E0"/>
@@ -42,68 +41,58 @@
       <Setter Property="SyntaxHighlighting" Value="XML"/>
      </Style> 
   </Window.Styles>
-    
-  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
+
+  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
     <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20"/>
 
-    <StackPanel Grid.Row="1" Classes="input-row">
-      <TextBlock Text="Количество рядов скважин:" Classes="input-label"/>
-      <TextBox x:Name="MaxRowTextBox" Text="100" Classes="input"/>
-    </StackPanel>
+    <Grid Grid.Row="1" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Количество рядов скважин:" Classes="input-label" Grid.Column="0"/>
+      <TextBox x:Name="MaxRowTextBox" Classes="input" Grid.Column="2"/>
+      <TextBlock Text="Количество столбцов скважин:" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="MaxColTextBox" Classes="input" Grid.Column="6"/>
+    </Grid>
 
-    <StackPanel Grid.Row="2" Classes="input-row">
-      <TextBlock Text="Количество столбцов скважин:" Classes="input-label"/>
-      <TextBox x:Name="MaxColTextBox" Text="10" Classes="input"/>
-    </StackPanel>
-    
-    <StackPanel Grid.Row="3" Classes="input-row">
-      <TextBlock Text="Угол поворота сетки" Classes="input-label"/>
-      <TextBox x:Name="RotationAngleTextBox" Text="0" Classes="input"/>
-    </StackPanel>
+    <Grid Grid.Row="2" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Координата X первой скважин:" Classes="input-label" Grid.Column="0"/>
+      <TextBox x:Name="BaseXTextBox" Classes="input" Grid.Column="2"/>
+      <TextBlock Text="Координата Y первой скважин:" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="BaseYTextBox" Classes="input" Grid.Column="6"/>
+      <TextBlock Text="Координата Z скважин:" Classes="input-label" Grid.Column="8"/>
+      <TextBox x:Name="BaseZTextBox" Classes="input" Grid.Column="10"/>
+    </Grid>
 
-    <StackPanel Grid.Row="4" Classes="input-row">
-      <TextBlock Text="Координата X первой скважины:" Classes="input-label"/>
-      <TextBox x:Name="BaseXTextBox" Text="72690" Classes="input"/>
-    </StackPanel>
+    <Grid Grid.Row="3" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Расстояние между скважинами:" Classes="input-label" Grid.Column="0"/>
+      <TextBox x:Name="DistanceTextBox" Classes="input" Grid.Column="2"/>
+      <TextBlock Text="Угол поворота сетки" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="RotationAngleTextBox" Classes="input" Grid.Column="6"/>
+    </Grid>
 
-    <StackPanel Grid.Row="5" Classes="input-row">
-      <TextBlock Text="Координата Y первой скважины:" Classes="input-label"/>
-      <TextBox x:Name="BaseYTextBox" Text="98890" Classes="input"/>
-    </StackPanel>
+    <Grid Grid.Row="4" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Название карьера:" Classes="input-label" Grid.Column="0"/>
+      <TextBox x:Name="PitNameTextBox" Classes="input" Grid.Column="2"/>
+      <TextBlock Text="Уровень:" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="LevelTextBox" Classes="input" Grid.Column="6"/>
+      <TextBlock Text="Номер блока:" Classes="input-label" Grid.Column="8"/>
+      <TextBox x:Name="BlockNumberTextBox" Classes="input" Grid.Column="10"/>
+    </Grid>
 
-    <StackPanel Grid.Row="6" Classes="input-row">
-      <TextBlock Text="Расстояние между скважинами:" Classes="input-label"/>
-      <TextBox x:Name="DistanceTextBox" Text="5" Classes="input"/>
-    </StackPanel>
+    <Grid Grid.Row="5" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Рассредоточенный заряд:" Classes="input-label" Grid.Column="0"/>
+      <CheckBox x:Name="DispersedChargeCheckBox" Grid.Column="2" HorizontalAlignment="Center"/>
+      <TextBlock Text="Масса основного заряда:" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="MainChargeMassTextBox" Classes="input" Grid.Column="6"/>
+      <TextBlock x:Name="SecondaryChargeMassLabel" Text="Масса второго заряда:" Classes="input-label" Grid.Column="8" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}"/>
+      <TextBox x:Name="SecondaryChargeMassTextBox" Classes="input" Grid.Column="10" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}"/>
+    </Grid>
 
-    <StackPanel Grid.Row="7" Classes="input-row">
-      <TextBlock Text="Название карьера:" Classes="input-label"/>
-      <TextBox x:Name="PitNameTextBox" Text="Верхне Нижний" Classes="input"/>
-    </StackPanel>
+    <Button x:Name="GenerateButton" Grid.Row="7" Content="Сгенерировать XML" Classes="button" Click="OnGenerateClick"/>
+    <TextBlock x:Name="StatusText" Grid.Row="8" Classes="status-text"/>
 
-    <StackPanel Grid.Row="8" Classes="input-row">
-      <TextBlock Text="Уровень:" Classes="input-label"/>
-      <TextBox x:Name="LevelTextBox" Text="972" Classes="input"/>
-    </StackPanel>
-
-    <StackPanel Grid.Row="9" Classes="input-row">
-      <TextBlock Text="Номер блока:" Classes="input-label"/>
-      <TextBox x:Name="BlockNumberTextBox" Text="102" Classes="input"/>
-    </StackPanel>
-    
-    <StackPanel Grid.Row="10" Classes="input-row">
-      <TextBlock Text="Рассредоточенный заряд:" Classes="input-label"/>
-      <CheckBox x:Name="DispersedChargeCheckBox" Margin="90,0" />
-    </StackPanel>
-
-    <Button x:Name="GenerateButton" Grid.Row="11" Content="Сгенерировать XML" Click="OnGenerateClick" Classes="button"/>
-
-    <TextBlock x:Name="StatusText" Grid.Row="12" Classes="status-text"/>
-
-    <Border Grid.Row="13" Classes="texteditor">
+    <Border Grid.Row="9" Classes="texteditor">
       <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output"/>
     </Border>
-    
-    <Button x:Name="CopyButton" Grid.Row="14" Content="Копировать в буфер обмена" Click="OnCopyClick" Classes="button"/>
+
+    <Button x:Name="CopyButton" Grid.Row="10" Content="Копировать в буфер обмена" Classes="button" Click="OnCopyClick"/>
   </Grid>
 </Window>
