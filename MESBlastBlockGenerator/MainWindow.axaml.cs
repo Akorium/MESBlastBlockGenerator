@@ -7,6 +7,7 @@ using MESBlastBlockGenerator.Models;
 using NLog;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Reflection;
 
 namespace MESBlastBlockGenerator
@@ -16,6 +17,7 @@ namespace MESBlastBlockGenerator
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private readonly AppSettings appSettings = SettingsManager.LoadSettings();
         private InputParameters? inputs;
+        private readonly CultureInfo culture = CultureInfo.CurrentCulture;
 
         public MainWindow()
         {
@@ -29,19 +31,22 @@ namespace MESBlastBlockGenerator
             string title = $"MESBlastBlockGenerator v{version?.Major}.{version?.Minor}.{version?.Build}";
             this.Title = title;
 
-            MaxRowTextBox.Text = appSettings.MaxRow.ToString();
-            MaxColTextBox.Text = appSettings.MaxCol.ToString();
-            RotationAngleTextBox.Text = appSettings.RotationAngle.ToString();
-            BaseXTextBox.Text = appSettings.BaseX.ToString();
-            BaseYTextBox.Text = appSettings.BaseY.ToString();
-            BaseZTextBox.Text = appSettings.BaseZ.ToString();
-            DistanceTextBox.Text = appSettings.Distance.ToString();
+            MaxRowTextBox.Text = appSettings.MaxRow.ToString(culture);
+            MaxColTextBox.Text = appSettings.MaxCol.ToString(culture);
+            RotationAngleTextBox.Text = appSettings.RotationAngle.ToString(culture);
+            BaseXTextBox.Text = appSettings.BaseX.ToString(culture);
+            BaseYTextBox.Text = appSettings.BaseY.ToString(culture);
+            BaseZTextBox.Text = appSettings.BaseZ.ToString(culture);
+            DistanceTextBox.Text = appSettings.Distance.ToString(culture);
             PitNameTextBox.Text = appSettings.PitName;
-            LevelTextBox.Text = appSettings.Level.ToString();
-            BlockNumberTextBox.Text = appSettings.BlockNumber.ToString();
+            LevelTextBox.Text = appSettings.Level.ToString(culture);
+            BlockNumberTextBox.Text = appSettings.BlockNumber.ToString(culture);
+            DesignDepthTextBox.Text = appSettings.DesignDepth.ToString(culture);
+            RealDepthTextBox.Text = appSettings.RealDepth.ToString(culture);
             DispersedChargeCheckBox.IsChecked = appSettings.DispersedCharge;
-            MainChargeMassTextBox.Text = appSettings.MainChargeMass.ToString();
-            SecondaryChargeMassTextBox.Text = appSettings.SecondaryChargeMass.ToString();
+            MainChargeMassTextBox.Text = appSettings.MainChargeMass.ToString(culture);
+            SecondaryChargeMassTextBox.Text = appSettings.SecondaryChargeMass.ToString(culture);
+            StemmingLengthTextBox.Text = appSettings.StemmingLength.ToString(culture);
             logger.Info($"{title} запущен");
         }
 
@@ -61,9 +66,10 @@ namespace MESBlastBlockGenerator
             {
                 inputs = ValidateInputs();
                 logger.Debug($"Попытка генерации XML с maxRow = {inputs.MaxRow}, maxCol = {inputs.MaxCol}, baseX = {inputs.BaseX}, baseY = {inputs.BaseY}, " +
-                    $"baseZ = {inputs.BaseZ}, distance = {inputs.Distance}, pitName = {inputs.PitName}, level = {inputs.Level}, blockNumber = {inputs.BlockNumber}," +
-                    $" dispersedCharge = {inputs.DispersedCharge}, mainChargeMass = {inputs.MainChargeMass}" +
-                    $"{(inputs.DispersedCharge ? $", secondaryChargeMass = {inputs.SecondaryChargeMass}" : "")}");
+                    $"baseZ = {inputs.BaseZ}, distance = {inputs.Distance}, pitName = {inputs.PitName}, level = {inputs.Level}, blockNumber = {inputs.BlockNumber}, " +
+                    $"dispersedCharge = {inputs.DispersedCharge}, mainChargeMass = {inputs.MainChargeMass}" +
+                    $"designDepth = {inputs.DesignDepth}, realDepth = {inputs.RealDepth}, {(inputs.DispersedCharge ? $", secondaryChargeMass = {inputs.SecondaryChargeMass}, " : "")} " +
+                    $"stemmingLength = {inputs.StemmingLength}");
                 string xmlContent = XmlGenerationHelper.GenerateXmlContent(inputs);
 
                 UpdateSettings(inputs);
@@ -85,8 +91,9 @@ namespace MESBlastBlockGenerator
 
         private void ClearValidationErrors()
         {
-            ValidationHelper.ClearValidation(MaxRowTextBox, MaxColTextBox, RotationAngleTextBox, BaseXTextBox, BaseYTextBox,
-                DistanceTextBox, PitNameTextBox, LevelTextBox, BlockNumberTextBox, MainChargeMassTextBox);
+            ValidationHelper.ClearValidation(MaxRowTextBox, MaxColTextBox, RotationAngleTextBox, BaseXTextBox, BaseYTextBox, BaseZTextBox,
+                DistanceTextBox, PitNameTextBox, LevelTextBox, BlockNumberTextBox, DesignDepthTextBox,RealDepthTextBox, MainChargeMassTextBox, 
+                SecondaryChargeMassTextBox, StemmingLengthTextBox);
         }
 
         private InputParameters ValidateInputs()
@@ -103,9 +110,12 @@ namespace MESBlastBlockGenerator
                 PitName = ValidationHelper.ValidateString(PitNameTextBox, FieldNames.Descriptions[Fields.PitName]),
                 Level = ValidationHelper.ValidatePositiveInt(LevelTextBox, FieldNames.Descriptions[Fields.Level]),
                 BlockNumber = ValidationHelper.ValidatePositiveInt(BlockNumberTextBox, FieldNames.Descriptions[Fields.BlockNumber]),
+                DesignDepth = ValidationHelper.ValidatePositiveDouble(DesignDepthTextBox, FieldNames.Descriptions[Fields.DesignDepth]),
+                RealDepth = ValidationHelper.ValidatePositiveDouble(RealDepthTextBox, FieldNames.Descriptions[Fields.RealDepth]),
                 DispersedCharge = DispersedChargeCheckBox.IsChecked ?? false,
-                MainChargeMass = ValidationHelper.ValidateDouble(MainChargeMassTextBox, FieldNames.Descriptions[Fields.MainChargeMass]),
-                SecondaryChargeMass = DispersedChargeCheckBox.IsChecked.GetValueOrDefault(false) ? ValidationHelper.ValidateDouble(SecondaryChargeMassTextBox, FieldNames.Descriptions[Fields.SecondaryChargeMass]) : appSettings.SecondaryChargeMass
+                MainChargeMass = ValidationHelper.ValidatePositiveDouble(MainChargeMassTextBox, FieldNames.Descriptions[Fields.MainChargeMass]),
+                SecondaryChargeMass = DispersedChargeCheckBox.IsChecked.GetValueOrDefault(false) ? ValidationHelper.ValidatePositiveDouble(SecondaryChargeMassTextBox, FieldNames.Descriptions[Fields.SecondaryChargeMass]) : appSettings.SecondaryChargeMass,
+                StemmingLength = ValidationHelper.ValidatePositiveDouble(StemmingLengthTextBox, FieldNames.Descriptions[Fields.StemmingLength])
             };
             ValidationHelper.ValidateWellsCount([MaxRowTextBox, MaxColTextBox], inputs.MaxCol, inputs.MaxRow);
             return inputs;
@@ -123,10 +133,13 @@ namespace MESBlastBlockGenerator
             appSettings.PitName = inputs.PitName;
             appSettings.Level = inputs.Level;
             appSettings.BlockNumber = inputs.BlockNumber;
+            appSettings.DesignDepth = inputs.DesignDepth;
+            appSettings.RealDepth = inputs.RealDepth;
             appSettings.DispersedCharge = inputs.DispersedCharge;
             appSettings.MainChargeMass = inputs.MainChargeMass;
             if (inputs.DispersedCharge) 
                 appSettings.SecondaryChargeMass = inputs.SecondaryChargeMass;
+            appSettings.StemmingLength = inputs.StemmingLength;
             SettingsManager.SaveSettings(appSettings);
         }
 

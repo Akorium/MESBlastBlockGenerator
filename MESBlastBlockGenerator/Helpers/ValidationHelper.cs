@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 
 namespace MESBlastBlockGenerator.Helpers
 {
@@ -23,6 +24,15 @@ namespace MESBlastBlockGenerator.Helpers
             {
                 box.Classes.Add("invalid");
                 throw new ValidationException($"{fieldName} имеет некорректное значение");
+            }
+            return value;
+        }
+        public static double ValidatePositiveDouble(TextBox box, string fieldName)
+        {
+            if (!double.TryParse(box.Text, out double value) || value <= 0)
+            {
+                box.Classes.Add("invalid");
+                throw new ValidationException($"{fieldName} должно быть положительным числом");
             }
             return value;
         }

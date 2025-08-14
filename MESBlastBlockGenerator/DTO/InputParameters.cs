@@ -12,8 +12,11 @@
         public string PitName { get; set; } = "";
         public int Level { get; set; }
         public int BlockNumber { get; set; }
+        public double DesignDepth { get; set; }
+        public double RealDepth { get; set; }
         public bool DispersedCharge { get; set; }
         public double MainChargeMass { get; set; }
         public double SecondaryChargeMass { get; set; }
+        public double StemmingLength { get; set; }
     }
 }

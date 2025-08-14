@@ -7,12 +7,15 @@
         RotationAngle,
         BaseX,
         BaseY,
+        BaseZ,
         Distance,
         PitName,
         Level,
         BlockNumber,
+        DesignDepth,
+        RealDepth,
         MainChargeMass,
         SecondaryChargeMass,
-        BaseZ
+        StemmingLength
     }
 }

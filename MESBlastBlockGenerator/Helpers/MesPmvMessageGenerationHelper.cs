@@ -1,4 +1,5 @@
 ﻿using MESBlastBlockGenerator.DTO;
+using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
 using NLog;
 using System;
@@ -90,6 +91,8 @@ namespace MESBlastBlockGenerator.Helpers
                     BlockDrillingName = $"{blockName}",
                     BlockBlastingCode = $"{inputs.PitName}{blockName}Blast",
                     BlockBlastingName = $"{blockName}",
+                    DepthPlan = inputs.DesignDepth.ToString(CultureInfo.InvariantCulture),
+                    DepthFact = inputs.RealDepth.ToString(CultureInfo.InvariantCulture),
                     X = x.ToString(CultureInfo.InvariantCulture),
                     Y = y.ToString(CultureInfo.InvariantCulture),
                     Z = inputs.BaseZ.ToString(CultureInfo.InvariantCulture),
@@ -97,7 +100,11 @@ namespace MESBlastBlockGenerator.Helpers
                     YFact = y.ToString(CultureInfo.InvariantCulture),
                     ZFact = inputs.BaseZ.ToString(CultureInfo.InvariantCulture)
                 },
-                PlanChargeMaterials = materials
+                PlanChargeMaterials = materials,
+                StemmingLengthPlan = new()
+                {
+                    Value = inputs.StemmingLength.ToString(CultureInfo.InvariantCulture)
+                }
             };
         }
 
@@ -115,8 +122,7 @@ namespace MESBlastBlockGenerator.Helpers
             var amounts = new List<Amount>
             {
                 new() {
-                    Value = inputs.MainChargeMass.ToString(CultureInfo.InvariantCulture),
-                    Priority = "1"
+                    Value = inputs.MainChargeMass.ToString(CultureInfo.InvariantCulture)
                 }
             };
             if (inputs.DispersedCharge)
@@ -155,13 +161,13 @@ namespace MESBlastBlockGenerator.Helpers
         private static (double x, double y) CalculateHoleCoords(InputParameters inputs, double cosAngle, double sinAngle, int row, int col)
         {
             double x = inputs.BaseX + col * inputs.Distance;
-            double y = inputs.BaseY + row * inputs.Distance;
+            double y = inputs.BaseY - row * inputs.Distance;
 
             double relX = x - inputs.BaseX;
             double relY = y - inputs.BaseY;
 
             x = inputs.BaseX + relX * cosAngle - relY * sinAngle;
-            y = inputs.BaseY + relX * sinAngle + relY * cosAngle;
+            y = inputs.BaseY - relX * sinAngle + relY * cosAngle;
 
             return (x, y);
         }

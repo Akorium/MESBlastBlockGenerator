@@ -78,6 +78,15 @@
     </Grid>
 
     <Grid Grid.Row="5" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
+      <TextBlock Text="Фактическая глубина скважин:" Classes="input-label" Grid.Column="0"/>
+      <TextBox x:Name="RealDepthTextBox" Classes="input" Grid.Column="2"/>
+      <TextBlock Text="Проектная глубина скважин:" Classes="input-label" Grid.Column="4"/>
+      <TextBox x:Name="DesignDepthTextBox" Classes="input" Grid.Column="6"/>
+      <TextBlock Text="Длина забойки:" Classes="input-label" Grid.Column="8"/>
+      <TextBox x:Name="StemmingLengthTextBox" Classes="input" Grid.Column="10"/>
+    </Grid>
+
+    <Grid Grid.Row="6" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
       <TextBlock Text="Рассредоточенный заряд:" Classes="input-label" Grid.Column="0"/>
       <CheckBox x:Name="DispersedChargeCheckBox" Grid.Column="2" HorizontalAlignment="Center"/>
       <TextBlock Text="Масса основного заряда:" Classes="input-label" Grid.Column="4"/>

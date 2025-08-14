@@ -16,8 +16,11 @@ namespace MESBlastBlockGenerator.Models
             [Fields.PitName] = "Название карьера",
             [Fields.Level] = "Уровень проекта",
             [Fields.BlockNumber] = "Номер блока",
+            [Fields.DesignDepth] = "Плановая глубина",
+            [Fields.RealDepth] = "Фактическая глубина",
             [Fields.MainChargeMass] = "Масса основного заряда",
-            [Fields.SecondaryChargeMass] = "Масса второго заряда"
+            [Fields.SecondaryChargeMass] = "Масса второго заряда",
+            [Fields.StemmingLength] = "Длина забойки"
         };
     }
 }
