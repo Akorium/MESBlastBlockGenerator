@@ -1,4 +1,4 @@
-﻿namespace MESBlastBlockGenerator.DTO
+﻿namespace MESBlastBlockGenerator.Models
 {
     public class InputParameters
     {

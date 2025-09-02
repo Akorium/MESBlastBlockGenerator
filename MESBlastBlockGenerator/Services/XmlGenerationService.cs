@@ -1,17 +1,21 @@
-﻿using MESBlastBlockGenerator.DTO;
+﻿using MESBlastBlockGenerator.Helpers;
+using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
 using MESBlastBlockGenerator.Models.SOAP;
+using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator.Helpers
+namespace MESBlastBlockGenerator.Services
 {
-    public class XmlGenerationHelper
+    public class XmlGenerationService : IXmlGenerationService
     {
+        private static readonly MesPmvMessageGenerationHelper mesPmvMessageGenerationHelper = new();
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly XmlSerializer _mesPmvSerializer = new(typeof(MesPmv));
         private static readonly XmlSerializer _envelopeSerializer = new(typeof(Envelope));
@@ -33,26 +37,29 @@ namespace MESBlastBlockGenerator.Helpers
         /// </summary>
         /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Сгенерированное содержимое XML в виде строки.</returns>
-        public static string GenerateXmlContent(InputParameters inputs)
+        public async Task<string> GenerateXmlContentAsync(InputParameters inputs)
         {
-            //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
-            var mesPmv = MesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
-            logger.Debug("Сообщение mesPmv сгенерировано");
-            var innerXml = Serialize(mesPmv, new XmlSerializerNamespaces());
-            var envelope = new Envelope
+            return await Task.Run(() =>
             {
-                Body = new Body
+                //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
+                var mesPmv = mesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
+                logger.Debug("Сообщение mesPmv сгенерировано");
+                var innerXml = Serialize(mesPmv, new XmlSerializerNamespaces());
+                var envelope = new Envelope
                 {
-                    SoapXmlRequest = new SoapXmlRequest
+                    Body = new Body
                     {
-                        XmlRequest = new XmlRequest
+                        SoapXmlRequest = new SoapXmlRequest
                         {
-                            Message = new Message { XmlContent = innerXml }
+                            XmlRequest = new XmlRequest
+                            {
+                                Message = new Message { XmlContent = innerXml }
+                            }
                         }
                     }
-                }
-            };
-            return Serialize(envelope, _soapNamespaces);
+                };
+                return Serialize(envelope, _soapNamespaces);
+            });
         }
 
         /// <summary>

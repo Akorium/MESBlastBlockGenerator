@@ -1,5 +1,4 @@
-﻿using MESBlastBlockGenerator.DTO;
-using MESBlastBlockGenerator.Models;
+﻿using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
 using NLog;
 using System;
@@ -17,7 +16,7 @@ namespace MESBlastBlockGenerator.Helpers
         /// </summary>
         /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Объект MesPmv для последующей сериализации.</returns>
-        public static MesPmv GenerateMesPmvMessage(InputParameters inputs)
+        public MesPmv GenerateMesPmvMessage(InputParameters inputs)
         {
             var mesPmv = new MesPmv
             {
@@ -42,7 +41,7 @@ namespace MESBlastBlockGenerator.Helpers
             double cosAngle = Math.Cos(rotationAngleRad);
             double sinAngle = Math.Sin(rotationAngleRad);
 
-            List<Material> materials = GenerateMaterials(inputs);
+            List<MESBlastBlockGenerator.Models.BlastProject.Material> materials = GenerateMaterials(inputs);
             var holes = new List<Hole>(inputs.MaxCol * inputs.MaxRow);
             for (int row = 0; row < inputs.MaxRow; row++)
             {
@@ -68,7 +67,7 @@ namespace MESBlastBlockGenerator.Helpers
         /// <param name="y">Координата Y скважины.</param>
         /// <param name="materials">Список взрывчатых веществ.</param>
         /// <returns>Объект Hole, содержащий необходимые данные.</returns>
-        private static Hole GenerateHole(string blastProjectId, int row, int col, InputParameters inputs, double x, double y, List<Material> materials)
+        private static Hole GenerateHole(string blastProjectId, int row, int col, InputParameters inputs, double x, double y, List<MESBlastBlockGenerator.Models.BlastProject.Material> materials)
         {
             string levelCode = $"{inputs.PitName}{inputs.Level}";
             string blockName = $"{inputs.Level}-{inputs.BlockNumber}";
@@ -113,10 +112,10 @@ namespace MESBlastBlockGenerator.Helpers
         /// </summary>
         /// <param name="dispersedCharge">Указывает, является ли заряд рассредоточенным.</param>
         /// <returns>Список объектов Material.</returns>
-        private static List<Material> GenerateMaterials(InputParameters inputs)
+        private static List<MESBlastBlockGenerator.Models.BlastProject.Material> GenerateMaterials(InputParameters inputs)
         {
-            var materials = new List<Material>();
-            var exploder = new Material();
+            var materials = new List<MESBlastBlockGenerator.Models.BlastProject.Material>();
+            var exploder = new MESBlastBlockGenerator.Models.BlastProject.Material();
             materials.Add(exploder);
 
             var amounts = new List<Amount>
@@ -136,7 +135,7 @@ namespace MESBlastBlockGenerator.Helpers
             }
 
             var explosive =
-                new Material
+                new MESBlastBlockGenerator.Models.BlastProject.Material
                 {
                     MaterialCode = "1025160",
                     MaterialShortName = "Вещество взрывчатое Березит Э-70",
