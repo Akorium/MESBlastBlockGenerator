@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Avalonia.Input.Platform;
 using Avalonia.Media;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
@@ -12,6 +13,7 @@ using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -24,6 +26,7 @@ namespace MESBlastBlockGenerator
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly Window _mainWindow;
         private readonly SnackbarHost _statusSnackbar;
+        private readonly InputParameters _inputParameters = new();
 
         public MainWindowViewModel(IXmlGenerationService xmlGenerationService, Window mainWindow)
         {
@@ -37,62 +40,144 @@ namespace MESBlastBlockGenerator
         #region Properties
         [ObservableProperty]
         [NotifyDataErrorInfo]
-        [Range(1, int.MaxValue, ErrorMessage = "Должно быть больше 0")]
-        public int maxRow;
-        [ObservableProperty]
-        public int maxCol;
-        [ObservableProperty]
-        public double rotationAngle;
-        [ObservableProperty]
-        public double baseX;
-        [ObservableProperty]
-        public double baseY;
-        [ObservableProperty]
-        public double baseZ;
-        [ObservableProperty]
-        public double distance;
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
+        private string _maxRow;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        public string pitName = string.Empty;
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
+        private string _maxCol;
         [ObservableProperty]
-        public int level;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _rotationAngle;
         [ObservableProperty]
-        public int blockNumber;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть числом")]
+        private string _baseX;
         [ObservableProperty]
-        public bool dispersedCharge = false;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть числом")]
+        private string _baseY;
         [ObservableProperty]
-        public double mainChargeMass;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _baseZ;
         [ObservableProperty]
-        public double secondaryChargeMass;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
+        private string _distance;
         [ObservableProperty]
-        public double designDepth;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        private string _pitName;
         [ObservableProperty]
-        public double realDepth;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
+        private string _level;
         [ObservableProperty]
-        public double stemmingLength;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
+        private string _blockNumber;
         [ObservableProperty]
-        public TextDocument generatedXml = new();
+        private bool _dispersedCharge = false;
         [ObservableProperty]
-        public IBrush statusColor = Brushes.Green;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _mainChargeMass;
         [ObservableProperty]
-        public string title = string.Empty;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _secondaryChargeMass;
         [ObservableProperty]
-        public bool copyButtonEnabled = false;
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _designDepth;
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _realDepth;
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
+        private string _stemmingLength;
+        [ObservableProperty]
+        private TextDocument _generatedXml = new();
+        [ObservableProperty]
+        private IBrush _statusColor = Brushes.Green;
+        [ObservableProperty]
+        private string _title = GetTitle();
+        [ObservableProperty]
+        private bool _copyButtonEnabled = false;
         #endregion
 
         [RelayCommand]
-        private async Task GenerateXml()
+        private async Task GenerateXmlAsync()
         {
-            await GenerateXmlAsync();
+            _logger.Info("Инициализирована генерация XML");
+            ClearStatus();
+
+            try
+            {
+                ValidateAllProperties();
+
+                if (HasErrors)
+                {
+                    ShowMessage("Пожалуйста, исправьте ошибки ввода", true);
+                    return;
+                }
+
+                _logger.Debug($"Попытка генерации XML с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
+                    $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
+                    $"dispersedCharge = {_inputParameters.DispersedCharge}, mainChargeMass = {_inputParameters.MainChargeMass}" +
+                    $"designDepth = {_inputParameters.DesignDepth}, realDepth = {_inputParameters.RealDepth}, {(_inputParameters.DispersedCharge ? $", secondaryChargeMass = {_inputParameters.SecondaryChargeMass}, " : "")} " +
+                    $"stemmingLength = {_inputParameters.StemmingLength}");
+                string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
+
+                SettingsManager.UpdateAndSaveSettings(_appSettings, _inputParameters);
+                GeneratedXml = new TextDocument(xmlContent);
+                ShowMessage("XML успешно сгенерирован!");
+                CopyButtonEnabled = true;
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка генерации: {ex.Message}", true);
+            }
         }
 
         [RelayCommand]
-        private async Task CopyToClipboard()
+        private async Task CopyToClipboardAsync()
         {
-            await CopyToClipboardAsync();
+            _logger.Info("Инициализировано копирование результата в буфер обмена");
+            if (!string.IsNullOrWhiteSpace(GeneratedXml.Text))
+            {
+                if (_mainWindow.Clipboard is IClipboard clipboard)
+                {
+                    try
+                    {
+                        await clipboard.SetTextAsync(GeneratedXml.Text);
+                        ShowMessage("XML скопирован в буфер обмена!");
+                    }
+                    catch (Exception ex)
+                    {
+                        ShowMessage($"Ошибка копирования: {ex.Message}", true);
+                    }
+                }
+            }
         }
-
 
         private void InitializeFromSettings(AppSettings settings)
         {
@@ -112,121 +197,25 @@ namespace MESBlastBlockGenerator
             MainChargeMass = settings.MainChargeMass;
             SecondaryChargeMass = settings.SecondaryChargeMass;
             StemmingLength = settings.StemmingLength;
-            Title = GetTitle();
         }
 
-        public async Task GenerateXmlAsync()
+        private void ShowMessage(string message, bool isError = false)
         {
-            _logger.Info("Инициализирована генерация XML");
-            ClearStatus();
-
-            try
+            if (isError)
             {
-                var inputs = GetInputs();
-                _logger.Debug($"Попытка генерации XML с maxRow = {inputs.MaxRow}, maxCol = {inputs.MaxCol}, baseX = {inputs.BaseX}, baseY = {inputs.BaseY}, " +
-                    $"baseZ = {inputs.BaseZ}, distance = {inputs.Distance}, pitName = {inputs.PitName}, level = {inputs.Level}, blockNumber = {inputs.BlockNumber}, " +
-                    $"dispersedCharge = {inputs.DispersedCharge}, mainChargeMass = {inputs.MainChargeMass}" +
-                    $"designDepth = {inputs.DesignDepth}, realDepth = {inputs.RealDepth}, {(inputs.DispersedCharge ? $", secondaryChargeMass = {inputs.SecondaryChargeMass}, " : "")} " +
-                    $"stemmingLength = {inputs.StemmingLength}");
-                string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(inputs);
-
-                UpdateSettings(inputs);
-                GeneratedXml = new TextDocument(xmlContent);
-                ShowSuccess("XML успешно сгенерирован!");
-                CopyButtonEnabled = true;
+                StatusColor = Brushes.Red;
+                _logger.Error(message);
             }
-            catch (Exception ex)
+            else
             {
-                ShowError($"Ошибка генерации: {ex.Message}");
+                _logger.Info(message);
             }
-        }
-
-        public async Task CopyToClipboardAsync()
-        {
-            _logger.Info("Инициализировано копирование результата в буфер обмена");
-            if (!string.IsNullOrWhiteSpace(GeneratedXml.Text))
-            {
-                if (_mainWindow.Clipboard is { } clipboard)
-                {
-                    try
-                    {
-                        await clipboard.SetTextAsync(GeneratedXml.Text);
-                        ShowSuccess("XML скопирован в буфер обмена!");
-                    }
-                    catch (Exception ex)
-                    {
-                        ShowError($"Ошибка копирования: {ex.Message}");
-                    }
-                }
-            }
-        }
-
-        private InputParameters GetInputs()
-        {
-            var inputs = new InputParameters
-            {
-                MaxRow = MaxRow,
-                MaxCol = MaxCol,
-                RotationAngle = RotationAngle,
-                BaseX = BaseX,
-                BaseY = BaseY,
-                BaseZ = BaseZ,
-                Distance = Distance,
-                PitName = PitName,
-                Level = Level,
-                BlockNumber = BlockNumber,
-                DesignDepth = DesignDepth,
-                RealDepth = RealDepth,
-                DispersedCharge =  DispersedCharge,
-                MainChargeMass = MainChargeMass,
-                SecondaryChargeMass = SecondaryChargeMass,
-                StemmingLength = StemmingLength
-            };
-            return inputs;
-        }
-
-        private void UpdateSettings(InputParameters inputs)
-        {
-            _appSettings.MaxRow = inputs.MaxRow;
-            _appSettings.MaxCol = inputs.MaxCol;
-            _appSettings.RotationAngle = inputs.RotationAngle;
-            _appSettings.BaseX = inputs.BaseX;
-            _appSettings.BaseY = inputs.BaseY;
-            _appSettings.BaseZ = inputs.BaseZ;
-            _appSettings.Distance = inputs.Distance;
-            _appSettings.PitName = inputs.PitName;
-            _appSettings.Level = inputs.Level;
-            _appSettings.BlockNumber = inputs.BlockNumber;
-            _appSettings.DesignDepth = inputs.DesignDepth;
-            _appSettings.RealDepth = inputs.RealDepth;
-            _appSettings.DispersedCharge = inputs.DispersedCharge;
-            _appSettings.MainChargeMass = inputs.MainChargeMass;
-            if (inputs.DispersedCharge)
-                _appSettings.SecondaryChargeMass = inputs.SecondaryChargeMass;
-            _appSettings.StemmingLength = inputs.StemmingLength;
-            SettingsManager.SaveSettings(_appSettings);
-        }
-
-        private void ShowSuccess(string message)
-        {
             SnackbarHost.Post(
-            new SnackbarModel(
-                message,
-                TimeSpan.FromSeconds(5)),
-            _statusSnackbar.HostName,
-            DispatcherPriority.Normal);
-            _logger.Info(message);
-        }
-        private void ShowError(string message)
-        {
-            StatusColor = Brushes.Red;
-            SnackbarHost.Post(
-            new SnackbarModel(
-                message,
-                TimeSpan.FromSeconds(5)),
-            _statusSnackbar.HostName,
-            DispatcherPriority.Normal);
-            _logger.Info(message);
+                new SnackbarModel(
+                    message,
+                    TimeSpan.FromSeconds(5)),
+                _statusSnackbar.HostName,
+                DispatcherPriority.Normal);
         }
         private static string GetTitle()
         {
@@ -236,6 +225,112 @@ namespace MESBlastBlockGenerator
         private void ClearStatus()
         {
             StatusColor = Brushes.Green;
+        }
+        partial void OnMaxRowChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.MaxRow = result;
+            }
+        }
+        partial void OnMaxColChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.MaxCol = result;
+            }
+        }
+        partial void OnRotationAngleChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.RotationAngle = result;
+            }
+        }
+        partial void OnBaseXChanged(string value)
+        {
+            if (double.TryParse(value, out double result))
+            {
+                _inputParameters.BaseX = result;
+            }
+        }
+        partial void OnBaseYChanged(string value)
+        {
+            if (double.TryParse(value, out double result))
+            {
+                _inputParameters.BaseY = result;
+            }
+        }
+
+        partial void OnBaseZChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.BaseZ = result;
+            }
+        }
+        partial void OnDistanceChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.Distance = result;
+            }
+        }
+        partial void OnPitNameChanged(string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                _inputParameters.PitName = value;
+            }
+        }
+        partial void OnLevelChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.Level = result;
+            }
+        }
+        partial void OnBlockNumberChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.BlockNumber = result;
+            }
+        }
+        partial void OnMainChargeMassChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.MainChargeMass = result;
+            }
+        }
+        partial void OnSecondaryChargeMassChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.SecondaryChargeMass = result;
+            }
+        }
+        partial void OnDesignDepthChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.DesignDepth = result;
+            }
+        }
+        partial void OnRealDepthChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.RealDepth = result;
+            }
+        }
+        partial void OnStemmingLengthChanged(string value)
+        {
+            if (double.TryParse(value, out double result) && result > 0)
+            {
+                _inputParameters.StemmingLength = result;
+            }
         }
     }
 }

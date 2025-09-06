@@ -15,7 +15,6 @@ namespace MESBlastBlockGenerator.Services
 {
     public class XmlGenerationService : IXmlGenerationService
     {
-        private static readonly MesPmvMessageGenerationHelper mesPmvMessageGenerationHelper = new();
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
         private static readonly XmlSerializer _mesPmvSerializer = new(typeof(MesPmv));
         private static readonly XmlSerializer _envelopeSerializer = new(typeof(Envelope));
@@ -25,7 +24,7 @@ namespace MESBlastBlockGenerator.Services
             new XmlQualifiedName("tem", "http://tempuri.org/")
             ]);
         
-        private static readonly XmlWriterSettings xmlSettings = new()
+        private static readonly XmlWriterSettings _xmlSettings = new()
         {
             Encoding = Encoding.UTF8,
             Indent = true,
@@ -42,7 +41,7 @@ namespace MESBlastBlockGenerator.Services
             return await Task.Run(() =>
             {
                 //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
-                var mesPmv = mesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
+                var mesPmv = MesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
                 logger.Debug("Сообщение mesPmv сгенерировано");
                 var innerXml = Serialize(mesPmv, new XmlSerializerNamespaces());
                 var envelope = new Envelope
@@ -72,7 +71,7 @@ namespace MESBlastBlockGenerator.Services
         private static string Serialize<T>(T obj, XmlSerializerNamespaces ns)
         {
             using var stream = new StringWriter();
-            using var writer = XmlWriter.Create(stream, xmlSettings);
+            using var writer = XmlWriter.Create(stream, _xmlSettings);
 
             var serializer = GetSerializer(typeof(T));
             serializer.Serialize(writer, obj, ns);

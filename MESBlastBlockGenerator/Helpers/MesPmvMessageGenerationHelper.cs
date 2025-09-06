@@ -9,14 +9,14 @@ namespace MESBlastBlockGenerator.Helpers
 {
     public class MesPmvMessageGenerationHelper
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
         /// <summary>
         /// Генерирует объект типа MesPmv на основе переданных параметров.
         /// </summary>
         /// <param name="inputs">Объект типа InputParameters</param>
         /// <returns>Объект MesPmv для последующей сериализации.</returns>
-        public MesPmv GenerateMesPmvMessage(InputParameters inputs)
+        public static MesPmv GenerateMesPmvMessage(InputParameters inputs)
         {
             var mesPmv = new MesPmv
             {
@@ -35,7 +35,7 @@ namespace MESBlastBlockGenerator.Helpers
         /// <returns>Список объектов Hole</returns>
         private static List<Hole> GenerateHoles(InputParameters inputs)
         {
-            logger.Debug("Инициализирована генерация скважин");
+            _logger.Debug("Инициализирована генерация скважин");
             string blastProjectId = Guid.NewGuid().ToString();
             double rotationAngleRad = inputs.RotationAngle * Math.PI / 180.0;
             double cosAngle = Math.Cos(rotationAngleRad);
