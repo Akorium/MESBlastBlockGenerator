@@ -3,6 +3,7 @@ name: .NET Core Desktop
 on:
   push:
     branches: [ "master" ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ "master" ]
 
@@ -12,14 +13,12 @@ env:
   SOLUTION_NAME: 'MESBlastBlockGenerator.sln'
 
 jobs:
+  # Build the application to verify it compiles correctly
   build:
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
     runs-on: windows-latest
 
     steps:
+    # Checkout the code from the repository
     - name: Checkout
       uses: actions/checkout@v4
       with:
@@ -31,41 +30,47 @@ jobs:
       with:
         dotnet-version: ${{ env.DOTNET_VERSION }}
         
-    # Restore the application
+    # Restore all NuGet packages and dependencies
     - name: Restore dependencies
       run: dotnet restore ${{ env.SOLUTION_NAME }}
 
-    # Build the application
+    # Build the application in Release configuration to verify compilation
     - name: Build application
-      run: dotnet build ${{ env.SOLUTION_NAME }} --configuration ${{ matrix.configuration }} --no-restore
+      run: dotnet build ${{ env.SOLUTION_NAME }} --configuration Release --no-restore
 
+  # Publish Windows artifacts for different architectures
   publish-windows:
     name: Publish Windows Artifacts
     needs: build
     runs-on: windows-latest
     strategy:
       matrix:
-        configuration: [Release]
         runtime: [win-x64, win-x86]
     steps:
+      # Checkout the code again for publishing step
       - name: Checkout
         uses: actions/checkout@v4
         
+      # Install .NET Core SDK for publishing
       - name: Install .NET Core
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      # Publish self-contained executable for Windows
+      # This creates a single executable file that includes .NET runtime
       - name: Publish for Windows
         run: |
           dotnet publish ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.csproj `
-            --configuration ${{ matrix.configuration }} `
+            --configuration Release `
             --runtime ${{ matrix.runtime }} `
             --self-contained true `
             -p:PublishSingleFile=true `
             -p:IncludeNativeLibrariesForSelfExtract=true `
             --output ./publish/${{ matrix.runtime }}
           
+      # Upload the published artifacts for download
+      # Artifacts will be available for 30 days
       - name: Upload Windows artifacts
         uses: actions/upload-artifact@v4
         with:
