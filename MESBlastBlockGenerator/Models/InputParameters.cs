@@ -18,5 +18,9 @@
         public double MainChargeMass { get; set; } = 500;
         public double SecondaryChargeMass { get; set; } = 600;
         public double StemmingLength { get; set; } = 4.59;
+        public int DesignDiameter { get; set; } = 233;
+        public int RealDiameter { get; set; } = 233;
+        public bool IsDrilling { get; set; } = false;
+        public double CoordinatesDeviation { get; set; } = 0;
     }
 }

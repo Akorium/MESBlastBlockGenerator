@@ -59,7 +59,7 @@ namespace MESBlastBlockGenerator.Models.BlastProject
         public string ExplosiveRatioByWell { get; set; } = "1.252";
 
         [XmlAttribute("depth_plan")]
-        public string DepthPlan { get; set; } = "9.5";
+        public required string DepthPlan { get; set; }
 
         [XmlAttribute("depth_plan_eom_id")]
         public string DepthPlanEomId { get; set; } = "006";
@@ -68,31 +68,31 @@ namespace MESBlastBlockGenerator.Models.BlastProject
         public string DepthPlanEom { get; set; } = "м";
 
         [XmlAttribute("depth_fact")]
-        public string DepthFact { get; set; } = "7";
+        public string? DepthFact { get; set; } = null;
 
         [XmlAttribute("depth_fact_eom_id")]
-        public string DepthFactEomId { get; set; } = "018";
+        public string? DepthFactEomId { get; set; } = null;
 
         [XmlAttribute("depth_fact_eom")]
-        public string DepthFactEom { get; set; } = "пог. м";
+        public string? DepthFactEom { get; set; } = null;
 
         [XmlAttribute("diameter_plan")]
-        public string DiameterPlan { get; set; } = "233";
+        public required string DiameterPlan { get; set; }
 
         [XmlAttribute("diameter_eom_id")]
         public string DiameterEomId { get; set; } = "004";
 
         [XmlAttribute("diameter_eom")]
-        public string DiameterEom { get; set; } = "см";
+        public string DiameterEom { get; set; } = "мм";
 
         [XmlAttribute("diameter_fact")]
-        public string DiameterFact { get; set; } = "233";
+        public string? DiameterFact { get; set; } = null;
 
         [XmlAttribute("diameter_fact_eom_id")]
-        public string DiameterFactEomId { get; set; } = "003";
+        public string? DiameterFactEomId { get; set; } = null;
 
         [XmlAttribute("diameter_fact_eom")]
-        public string DiameterFactEom { get; set; } = "мм";
+        public string? DiameterFactEom { get; set; } = null;
 
         [XmlAttribute("x")]
         public required string X { get; set; }
@@ -101,19 +101,19 @@ namespace MESBlastBlockGenerator.Models.BlastProject
         public required string Y { get; set; }
 
         [XmlAttribute("z")]
-        public string Z { get; set; } = "980.66";
+        public required string Z { get; set; }
 
         [XmlAttribute("x_fact")]
-        public required string XFact { get; set; }
+        public string? XFact { get; set; } = null;
 
         [XmlAttribute("y_fact")]
-        public required string YFact { get; set; }
+        public string? YFact { get; set; } = null;
 
         [XmlAttribute("z_fact")]
-        public string ZFact { get; set; } = "980.66";
+        public string? ZFact { get; set; } = null;
 
         [XmlAttribute("isDrilling")]
-        public string IsDrilling { get; set; } = "true";
+        public required string IsDrilling { get; set; }
 
         [XmlAttribute("isDefective")]
         public string IsDefective { get; set; } = "false";

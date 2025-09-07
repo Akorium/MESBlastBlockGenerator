@@ -103,6 +103,23 @@ namespace MESBlastBlockGenerator
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _designDiameter = _inputParameters.DesignDiameter.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _realDiameter = _inputParameters.RealDiameter.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _coordinatesDeviation = _inputParameters.CoordinatesDeviation.ToString(_culture);
+        [ObservableProperty]
+        private bool _isDrilling = _inputParameters.IsDrilling;
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _stemmingLength = _inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
@@ -135,7 +152,7 @@ namespace MESBlastBlockGenerator
                     $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
                     $"dispersedCharge = {_inputParameters.DispersedCharge}, mainChargeMass = {_inputParameters.MainChargeMass}" +
                     $"designDepth = {_inputParameters.DesignDepth}, realDepth = {_inputParameters.RealDepth}, {(_inputParameters.DispersedCharge ? $", secondaryChargeMass = {_inputParameters.SecondaryChargeMass}, " : "")} " +
-                    $"stemmingLength = {_inputParameters.StemmingLength}");
+                    $"designDiameter = {_inputParameters.DesignDiameter}, realDiameter = {_inputParameters.RealDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
                 string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
 
                 SettingsManager.SaveInputs(_inputParameters);
@@ -307,6 +324,31 @@ namespace MESBlastBlockGenerator
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.StemmingLength = result;
+            }
+        }
+        partial void OnDesignDiameterChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.DesignDiameter = result;
+            }
+        }
+        partial void OnRealDiameterChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.RealDiameter = result;
+            }
+        }
+        partial void OnIsDrillingChanged(bool value)
+        {
+            _inputParameters.IsDrilling = value;
+        }
+        partial void OnCoordinatesDeviationChanged(string value)
+        {
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
+            {
+                _inputParameters.CoordinatesDeviation = result;
             }
         }
         #endregion
