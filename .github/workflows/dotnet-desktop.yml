@@ -3,7 +3,7 @@ name: .NET Core Desktop
 on:
   push:
     branches: [ "master" ]
-    tags: [ 'v*' ]
+    tags: [ '*' ]
   pull_request:
     branches: [ "master" ]
 
@@ -77,3 +77,44 @@ jobs:
           name: ${{ env.PROJECT_NAME }}-windows-${{ matrix.runtime }}
           path: ./publish/${{ matrix.runtime }}/
           retention-days: 30
+
+  # Create GitHub Release - runs when any tag is pushed
+  create-release:
+    name: Create GitHub Release
+    needs: publish-windows
+    runs-on: ubuntu-latest
+    # This job only runs when a tag is pushed (not on branch pushes or pull requests)
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      # Checkout the code to access release notes or other files if needed
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Download all previously uploaded artifacts
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      # Create ZIP archives from the downloaded artifacts
+      - name: Create release archives
+        run: |
+          cd artifacts
+          for dir in */; do
+            if [ -d "$dir" ]; then
+              zip -r "${dir%/}.zip" "$dir"
+            fi
+          done
+
+      # Create GitHub Release with the packaged artifacts
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ./artifacts/*.zip
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
