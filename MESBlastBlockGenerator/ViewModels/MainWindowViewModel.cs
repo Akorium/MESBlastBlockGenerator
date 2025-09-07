@@ -113,7 +113,7 @@ namespace MESBlastBlockGenerator
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
         private string _coordinatesDeviation = _inputParameters.CoordinatesDeviation.ToString(_culture);
         [ObservableProperty]
         private bool _isDrilling = _inputParameters.IsDrilling;

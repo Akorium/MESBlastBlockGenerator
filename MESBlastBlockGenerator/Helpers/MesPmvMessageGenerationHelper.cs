@@ -136,7 +136,7 @@ namespace MESBlastBlockGenerator.Helpers
                 hole.HoleItem.DiameterFactEom = hole.HoleItem.DiameterEom;
                 hole.HoleItem.XFact = (x + inputs.CoordinatesDeviation).ToString(CultureInfo.InvariantCulture);
                 hole.HoleItem.YFact = (y - inputs.CoordinatesDeviation).ToString(CultureInfo.InvariantCulture);
-                hole.HoleItem.ZFact = (inputs.BaseZ - inputs.CoordinatesDeviation).ToString(CultureInfo.InvariantCulture);
+                hole.HoleItem.ZFact = (inputs.BaseZ + inputs.CoordinatesDeviation).ToString(CultureInfo.InvariantCulture);
             }
             return hole;
         }
