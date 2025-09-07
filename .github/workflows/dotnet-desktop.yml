@@ -97,7 +97,29 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: ./artifacts
-
+          
+      # Extract release notes from changelog
+      - name: Extract release notes
+        id: release_notes
+        run: |
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Tag name: $TAG_NAME"
+          
+          # Try to extract notes for specific version from CHANGELOG.md
+          if [ -f "CHANGELOG.md" ]; then
+            # Extract section between version header and next version header or end of file
+            sed -n "/^## \[$TAG_NAME\]/,/^## \[/p" CHANGELOG.md | sed '$d' > release_notes.txt
+            if [ -s release_notes.txt ]; then
+              echo "release_notes<<EOF" >> $GITHUB_OUTPUT
+              cat release_notes.txt >> $GITHUB_OUTPUT
+              echo "EOF" >> $GITHUB_OUTPUT
+            else
+              echo "release_notes=Release notes not found for version $TAG_NAME" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "release_notes=No CHANGELOG.md file found" >> $GITHUB_OUTPUT
+          fi
+        
       # Create ZIP archives from the downloaded artifacts
       - name: Create release archives
         run: |
@@ -115,6 +137,6 @@ jobs:
           files: ./artifacts/*.zip
           draft: false
           prerelease: false
-          generate_release_notes: true
+          body: ${{ steps.release_notes.outputs.release_notes }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
