@@ -1,6 +1,6 @@
 ﻿namespace MESBlastBlockGenerator.Models
 {
-    public class AppSettings
+    public class InputParameters()
     {
         public int MaxRow { get; set; } = 100;
         public int MaxCol { get; set; } = 10;

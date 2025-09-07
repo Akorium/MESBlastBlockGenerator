@@ -1,19 +1,19 @@
 <Window xmlns="https://github.com/avaloniaui"
+        xmlns:vm="using:MESBlastBlockGenerator"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+        xmlns:wpf="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
         xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-        mc:Ignorable="d" d:DesignWidth="1500" d:DesignHeight="600" Background="LightGray"
-        x:Class="MESBlastBlockGenerator.MainWindow">
+        x:Class="MESBlastBlockGenerator.MainWindow"
+        Title="{Binding Title}">
   
   <Window.Styles>
-    <Style Selector="TextBlock.input-label">
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="Width" Value="250"/>
-     </Style>
     <Style Selector="TextBox.input">
-      <Setter Property="Width" Value="200"/>
+      <Setter Property="Width" Value="250"/>
       <Setter Property="HorizontalContentAlignment" Value="Center"/>
+      <Setter Property="Theme" Value="{StaticResource FilledTextBox}"/>
     </Style>
     <Style Selector="Border.texteditor">
       <Setter Property="BorderThickness" Value="1"/>
@@ -25,11 +25,8 @@
       <Setter Property="HorizontalAlignment" Value="Center"/>
     </Style>
     <Style Selector="Grid.row">
-      <Setter Property="VerticalAlignment" Value="Center"/>      
-    </Style>
-    <Style Selector="TextBox.invalid">
-      <Setter Property="Background" Value="#FFFFE0E0"/>
-      <Setter Property="BorderBrush" Value="Red"/>
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Height" Value="65"/>
     </Style>
     <Style Selector="TextBlock.status-text">
       <Setter Property="HorizontalAlignment" Value="Center"/>
@@ -42,66 +39,86 @@
      </Style> 
   </Window.Styles>
 
-  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="5">
-    <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center" Margin="0,0,0,20"/>
-
-    <Grid Grid.Row="1" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Количество рядов скважин:" Classes="input-label" Grid.Column="0"/>
-      <TextBox x:Name="MaxRowTextBox" Classes="input" Grid.Column="2"/>
-      <TextBlock Text="Количество столбцов скважин:" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="MaxColTextBox" Classes="input" Grid.Column="6"/>
+  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="10">
+    <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center"/>
+    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*" Classes="row">
+        <StackPanel Grid.Column="0">
+          <TextBox x:Name="MaxRowTextBox" Classes="input" Text="{Binding MaxRow, Mode=TwoWay}"
+                   wpf:TextFieldAssist.Label="Количество рядов скважин"/>
+        </StackPanel>
+        <StackPanel Grid.Column="1">
+          <TextBox x:Name="BaseXTextBox" Classes="input" Text="{Binding BaseX, Mode=TwoWay}" 
+                   wpf:TextFieldAssist.Label="Координата X первой скважин"/>
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBox x:Name="PitNameTextBox" Classes="input" Text="{Binding PitName, Mode=TwoWay}" 
+                   wpf:TextFieldAssist.Label="Название карьера"/>
+        </StackPanel>
+        <StackPanel Grid.Column="3">
+          <TextBox x:Name="RealDepthTextBox" Classes="input" Text="{Binding RealDepth, Mode=TwoWay}" 
+                   wpf:TextFieldAssist.Label="Фактическая глубина скважин"/>
+        </StackPanel>
+        <CheckBox x:Name="DispersedChargeCheckBox" IsChecked="{Binding DispersedCharge, Mode=TwoWay}" 
+                  Content="Рассредоточенный заряд" VerticalAlignment="Center" HorizontalAlignment="Center"
+                  Grid.Column="4"/>
     </Grid>
-
-    <Grid Grid.Row="2" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Координата X первой скважин:" Classes="input-label" Grid.Column="0"/>
-      <TextBox x:Name="BaseXTextBox" Classes="input" Grid.Column="2"/>
-      <TextBlock Text="Координата Y первой скважин:" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="BaseYTextBox" Classes="input" Grid.Column="6"/>
-      <TextBlock Text="Координата Z скважин:" Classes="input-label" Grid.Column="8"/>
-      <TextBox x:Name="BaseZTextBox" Classes="input" Grid.Column="10"/>
+    <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*,*" Classes="row">
+      <StackPanel Grid.Column="0">
+        <TextBox x:Name="MaxColTextBox" Classes="input" Text="{Binding MaxCol, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Количество столбцов скважин"/>
+      </StackPanel>
+      <StackPanel Grid.Column="1">
+        <TextBox x:Name="BaseYTextBox" Classes="input" Text="{Binding BaseY, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Координата Y первой скважин"/>
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <TextBox x:Name="LevelTextBox" Classes="input" Text="{Binding Level, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Горизонт"/>
+      </StackPanel>
+      <StackPanel Grid.Column="3">
+        <TextBox x:Name="DesignDepthTextBox" Classes="input" Text="{Binding DesignDepth, Mode=TwoWay}"
+                 wpf:TextFieldAssist.Label="Проектная глубина скважин"/>
+      </StackPanel>
+      <StackPanel Grid.Column="4">
+        <TextBox x:Name="MainChargeMassTextBox" Classes="input" Text="{Binding MainChargeMass}" 
+                 wpf:TextFieldAssist.Label="Масса основного заряда"/>
+      </StackPanel>
     </Grid>
-
-    <Grid Grid.Row="3" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Расстояние между скважинами:" Classes="input-label" Grid.Column="0"/>
-      <TextBox x:Name="DistanceTextBox" Classes="input" Grid.Column="2"/>
-      <TextBlock Text="Угол поворота сетки" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="RotationAngleTextBox" Classes="input" Grid.Column="6"/>
+    <Grid Grid.Row="3" ColumnDefinitions="*,*,*,*,*" Classes="row">
+      <StackPanel Grid.Column="0">
+        <TextBox x:Name="DistanceTextBox" Classes="input" Text="{Binding Distance, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Расстояние между скважинамин"/>
+      </StackPanel>
+      <StackPanel Grid.Column="1">
+        <TextBox x:Name="BaseZTextBox" Classes="input" Text="{Binding BaseZ, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Координата Z скважин"/>
+      </StackPanel>
+      <StackPanel Grid.Column="2">
+        <TextBox x:Name="BlockNumberTextBox" Classes="input" Text="{Binding BlockNumber, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Номер блока"/>
+      </StackPanel>
+      <StackPanel Grid.Column="3">
+        <TextBox x:Name="StemmingLengthTextBox" Classes="input" Text="{Binding StemmingLength, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Длина забойки"/>
+      </StackPanel>
+      <StackPanel Grid.Column="4">
+        <TextBox x:Name="SecondaryChargeMassTextBox" Classes="input" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}" 
+                 Text="{Binding SecondaryChargeMass}" wpf:TextFieldAssist.Label="Масса второго заряда"/>
+      </StackPanel>
     </Grid>
-
-    <Grid Grid.Row="4" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Название карьера:" Classes="input-label" Grid.Column="0"/>
-      <TextBox x:Name="PitNameTextBox" Classes="input" Grid.Column="2"/>
-      <TextBlock Text="Уровень:" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="LevelTextBox" Classes="input" Grid.Column="6"/>
-      <TextBlock Text="Номер блока:" Classes="input-label" Grid.Column="8"/>
-      <TextBox x:Name="BlockNumberTextBox" Classes="input" Grid.Column="10"/>
+    <Grid Grid.Row="4" ColumnDefinitions="*,*,*,*,*" Classes="row">
+      <StackPanel Grid.Column="0">
+        <TextBox x:Name="RotationAngleTextBox" Classes="input" Grid.Column="0" Text="{Binding RotationAngle, Mode=TwoWay}" 
+                 wpf:TextFieldAssist.Label="Угол поворота сетки"/>
+      </StackPanel>
     </Grid>
-
-    <Grid Grid.Row="5" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Фактическая глубина скважин:" Classes="input-label" Grid.Column="0"/>
-      <TextBox x:Name="RealDepthTextBox" Classes="input" Grid.Column="2"/>
-      <TextBlock Text="Проектная глубина скважин:" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="DesignDepthTextBox" Classes="input" Grid.Column="6"/>
-      <TextBlock Text="Длина забойки:" Classes="input-label" Grid.Column="8"/>
-      <TextBox x:Name="StemmingLengthTextBox" Classes="input" Grid.Column="10"/>
-    </Grid>
-
-    <Grid Grid.Row="6" ColumnDefinitions="250,10,200,5,250,10,200,5,250,10,200" Classes="row">
-      <TextBlock Text="Рассредоточенный заряд:" Classes="input-label" Grid.Column="0"/>
-      <CheckBox x:Name="DispersedChargeCheckBox" Grid.Column="2" HorizontalAlignment="Center"/>
-      <TextBlock Text="Масса основного заряда:" Classes="input-label" Grid.Column="4"/>
-      <TextBox x:Name="MainChargeMassTextBox" Classes="input" Grid.Column="6"/>
-      <TextBlock x:Name="SecondaryChargeMassLabel" Text="Масса второго заряда:" Classes="input-label" Grid.Column="8" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}"/>
-      <TextBox x:Name="SecondaryChargeMassTextBox" Classes="input" Grid.Column="10" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}"/>
-    </Grid>
-
-    <Button x:Name="GenerateButton" Grid.Row="7" Content="Сгенерировать XML" Classes="button" Click="OnGenerateClick"/>
-    <TextBlock x:Name="StatusText" Grid.Row="8" Classes="status-text"/>
-
-    <Border Grid.Row="9" Classes="texteditor">
-      <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output"/>
+    <Border Grid.Row="5" Classes="texteditor">
+      <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output" Document="{Binding GeneratedXml}"/>
     </Border>
-
-    <Button x:Name="CopyButton" Grid.Row="10" Content="Копировать в буфер обмена" Classes="button" Click="OnCopyClick"/>
+    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+      <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="button" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding CopyButtonEnabled}"/>
+      <Button x:Name="GenerateButton" Content="Сгенерировать XML" Classes="button" Command="{Binding GenerateXmlCommand}"/>
+    </StackPanel>
+    <controls:SnackbarHost Grid.Row="0" Grid.RowSpan="7" x:Name="StatusSnackbar" HostName="{Binding $self.Name}" Foreground="{Binding StatusColor}"/>
   </Grid>
 </Window>
