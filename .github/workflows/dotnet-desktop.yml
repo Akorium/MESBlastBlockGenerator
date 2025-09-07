@@ -98,17 +98,24 @@ jobs:
         with:
           path: ./artifacts
           
-      # Extract release notes from changelog
+      # Extract release notes from changelog file
       - name: Extract release notes
         id: release_notes
         run: |
           TAG_NAME=${GITHUB_REF#refs/tags/}
           echo "Tag name: $TAG_NAME"
           
-          # Try to extract notes for specific version from CHANGELOG.md
-          if [ -f "CHANGELOG.md" ]; then
-            # Extract section between version header and next version header or end of file
-            sed -n "/^## \[$TAG_NAME\]/,/^## \[/p" CHANGELOG.md | sed '$d' > release_notes.txt
+          # Путь к файлу ChangeLog.md в папке проекта
+          CHANGELOG_PATH="MESBlastBlockGenerator/ChangeLog.md"
+          
+          # Проверка существования файла
+          if [ -f "$CHANGELOG_PATH" ]; then
+            echo "Found changelog at: $CHANGELOG_PATH"
+            
+            # Извлечение секции между версиями
+            sed -n "/^## \[$TAG_NAME\]/,/^## \[/p" "$CHANGELOG_PATH" | sed '$d' > release_notes.txt
+            
+            # Проверка, что файл не пустой
             if [ -s release_notes.txt ]; then
               echo "release_notes<<EOF" >> $GITHUB_OUTPUT
               cat release_notes.txt >> $GITHUB_OUTPUT
@@ -117,7 +124,7 @@ jobs:
               echo "release_notes=Release notes not found for version $TAG_NAME" >> $GITHUB_OUTPUT
             fi
           else
-            echo "release_notes=No CHANGELOG.md file found" >> $GITHUB_OUTPUT
+            echo "release_notes=No ChangeLog.md file found at $CHANGELOG_PATH" >> $GITHUB_OUTPUT
           fi
         
       # Create ZIP archives from the downloaded artifacts
