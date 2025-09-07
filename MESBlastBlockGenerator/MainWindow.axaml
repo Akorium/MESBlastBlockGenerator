@@ -6,13 +6,8 @@
         xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
         xmlns:wpf="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
         xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-        xmlns:converters="clr-namespace:MESBlastBlockGenerator.Converters"
         x:Class="MESBlastBlockGenerator.MainWindow"
         Title="{Binding Title}">
-  
-  <Window.Resources>
-    <converters:IntValueConverter x:Key="IntConverter" />
-  </Window.Resources>
   
   <Window.Styles>
     <Style Selector="TextBox.input">

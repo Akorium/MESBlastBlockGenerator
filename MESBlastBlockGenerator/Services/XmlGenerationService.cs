@@ -15,7 +15,7 @@ namespace MESBlastBlockGenerator.Services
 {
     public class XmlGenerationService : IXmlGenerationService
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly XmlSerializer _mesPmvSerializer = new(typeof(MesPmv));
         private static readonly XmlSerializer _envelopeSerializer = new(typeof(Envelope));
         private static readonly XmlSerializerNamespaces _soapNamespaces = new(
@@ -42,7 +42,7 @@ namespace MESBlastBlockGenerator.Services
             {
                 //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
                 var mesPmv = MesPmvMessageGenerationHelper.GenerateMesPmvMessage(inputs);
-                logger.Debug("Сообщение mesPmv сгенерировано");
+                _logger.Debug("Сообщение mesPmv сгенерировано");
                 var innerXml = Serialize(mesPmv, new XmlSerializerNamespaces());
                 var envelope = new Envelope
                 {

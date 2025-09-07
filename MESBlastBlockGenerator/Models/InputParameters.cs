@@ -1,22 +1,22 @@
 ﻿namespace MESBlastBlockGenerator.Models
 {
-    public class InputParameters
+    public class InputParameters()
     {
-        public int MaxRow { get; set; }
-        public int MaxCol { get; set; }
-        public double RotationAngle { get; set; }
-        public double BaseX { get; set; }
-        public double BaseY { get; set; }
-        public double BaseZ { get; set; }
-        public double Distance { get; set; }
-        public string PitName { get; set; } = "";
-        public int Level { get; set; }
-        public int BlockNumber { get; set; }
-        public double DesignDepth { get; set; }
-        public double RealDepth { get; set; }
-        public bool DispersedCharge { get; set; }
-        public double MainChargeMass { get; set; }
-        public double SecondaryChargeMass { get; set; }
-        public double StemmingLength { get; set; }
+        public int MaxRow { get; set; } = 100;
+        public int MaxCol { get; set; } = 10;
+        public double RotationAngle { get; set; } = 0;
+        public double BaseX { get; set; } = 72690;
+        public double BaseY { get; set; } = 98890;
+        public double BaseZ { get; set; } = 980.66;
+        public double Distance { get; set; } = 5;
+        public string PitName { get; set; } = "Верхне Нижний";
+        public int Level { get; set; } = 972;
+        public int BlockNumber { get; set; } = 101;
+        public double DesignDepth { get; set; } = 9.5;
+        public double RealDepth { get; set; } = 7;
+        public bool DispersedCharge { get; set; } = false;
+        public double MainChargeMass { get; set; } = 500;
+        public double SecondaryChargeMass { get; set; } = 600;
+        public double StemmingLength { get; set; } = 4.59;
     }
 }

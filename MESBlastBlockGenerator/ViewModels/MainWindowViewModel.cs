@@ -19,101 +19,92 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator
 {
-    public partial class MainWindowViewModel : ObservableValidator
+    public partial class MainWindowViewModel(IXmlGenerationService xmlGenerationService, Window mainWindow) : ObservableValidator
     {
-        private readonly IXmlGenerationService _xmlGenerationService;
-        private readonly AppSettings _appSettings = SettingsManager.LoadSettings();
+        private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly Window _mainWindow;
-        private readonly SnackbarHost _statusSnackbar;
-        private readonly InputParameters _inputParameters = new();
-
-        public MainWindowViewModel(IXmlGenerationService xmlGenerationService, Window mainWindow)
-        {
-            _xmlGenerationService = xmlGenerationService;
-            _mainWindow = mainWindow;
-            _statusSnackbar = mainWindow.Find<SnackbarHost>("StatusSnackbar");
-
-            InitializeFromSettings(_appSettings);
-        }
+        private readonly Window _mainWindow = mainWindow;
+        private readonly SnackbarHost _statusSnackbar = mainWindow.Find<SnackbarHost>("StatusSnackbar");
+        private static readonly InputParameters _inputParameters = SettingsManager.LoadSavedInputs();
+        private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
-        private string _maxRow;
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _maxRow = _inputParameters.MaxRow.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
-        private string _maxCol;
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _maxCol = _inputParameters.MaxCol.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _rotationAngle;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _rotationAngle = _inputParameters.RotationAngle.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть числом")]
-        private string _baseX;
+        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
+        private string _baseX = _inputParameters.BaseX.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть числом")]
-        private string _baseY;
+        [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
+        private string _baseY = _inputParameters.BaseY.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _baseZ;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _baseZ = _inputParameters.BaseZ.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
-        private string _distance;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _distance = _inputParameters.Distance.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        private string _pitName;
+        private string _pitName = _inputParameters.PitName;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
-        private string _level;
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _level = _inputParameters.Level.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Должно быть положительным целым числом")]
-        private string _blockNumber;
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _blockNumber = _inputParameters.BlockNumber.ToString(_culture);
         [ObservableProperty]
-        private bool _dispersedCharge = false;
-        [ObservableProperty]
-        [NotifyDataErrorInfo]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _mainChargeMass;
+        private bool _dispersedCharge = _inputParameters.DispersedCharge;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _secondaryChargeMass;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _mainChargeMass = _inputParameters.MainChargeMass.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _designDepth;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _secondaryChargeMass = _inputParameters.SecondaryChargeMass.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _realDepth;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _designDepth = _inputParameters.DesignDepth.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Должно быть положительным числом")]
-        private string _stemmingLength;
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _realDepth = _inputParameters.RealDepth.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _stemmingLength = _inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
         private TextDocument _generatedXml = new();
         [ObservableProperty]
@@ -147,7 +138,7 @@ namespace MESBlastBlockGenerator
                     $"stemmingLength = {_inputParameters.StemmingLength}");
                 string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
 
-                SettingsManager.UpdateAndSaveSettings(_appSettings, _inputParameters);
+                SettingsManager.SaveInputs(_inputParameters);
                 GeneratedXml = new TextDocument(xmlContent);
                 ShowMessage("XML успешно сгенерирован!");
                 CopyButtonEnabled = true;
@@ -179,26 +170,6 @@ namespace MESBlastBlockGenerator
             }
         }
 
-        private void InitializeFromSettings(AppSettings settings)
-        {
-            MaxRow = settings.MaxRow;
-            MaxCol = settings.MaxCol;
-            RotationAngle = settings.RotationAngle;
-            BaseX = settings.BaseX;
-            BaseY = settings.BaseY;
-            BaseZ = settings.BaseZ;
-            Distance = settings.Distance;
-            PitName = settings.PitName;
-            Level = settings.Level;
-            BlockNumber = settings.BlockNumber;
-            DesignDepth = settings.DesignDepth;
-            RealDepth = settings.RealDepth;
-            DispersedCharge = settings.DispersedCharge;
-            MainChargeMass = settings.MainChargeMass;
-            SecondaryChargeMass = settings.SecondaryChargeMass;
-            StemmingLength = settings.StemmingLength;
-        }
-
         private void ShowMessage(string message, bool isError = false)
         {
             if (isError)
@@ -226,6 +197,8 @@ namespace MESBlastBlockGenerator
         {
             StatusColor = Brushes.Green;
         }
+
+        #region OnPropertyNameChanged
         partial void OnMaxRowChanged(string value)
         {
             if (int.TryParse(value, out int result) && result > 0)
@@ -242,21 +215,21 @@ namespace MESBlastBlockGenerator
         }
         partial void OnRotationAngleChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.RotationAngle = result;
             }
         }
         partial void OnBaseXChanged(string value)
         {
-            if (double.TryParse(value, out double result))
+            if (double.TryParse(value.ToString(_culture), out double result))
             {
                 _inputParameters.BaseX = result;
             }
         }
         partial void OnBaseYChanged(string value)
         {
-            if (double.TryParse(value, out double result))
+            if (double.TryParse(value.ToString(_culture), out double result))
             {
                 _inputParameters.BaseY = result;
             }
@@ -264,14 +237,14 @@ namespace MESBlastBlockGenerator
 
         partial void OnBaseZChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.BaseZ = result;
             }
         }
         partial void OnDistanceChanged(string value)
         {
-            if (int.TryParse(value, out int result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.Distance = result;
             }
@@ -299,38 +272,43 @@ namespace MESBlastBlockGenerator
         }
         partial void OnMainChargeMassChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.MainChargeMass = result;
             }
         }
         partial void OnSecondaryChargeMassChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.SecondaryChargeMass = result;
             }
         }
         partial void OnDesignDepthChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.DesignDepth = result;
             }
         }
         partial void OnRealDepthChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.RealDepth = result;
             }
         }
+        partial void OnDispersedChargeChanged(bool value)
+        {
+            _inputParameters.DispersedCharge = value;
+        }
         partial void OnStemmingLengthChanged(string value)
         {
-            if (double.TryParse(value, out double result) && result > 0)
+            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
                 _inputParameters.StemmingLength = result;
             }
         }
+        #endregion
     }
 }
