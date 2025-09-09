@@ -9,6 +9,8 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
+using MESBlastBlockGenerator.Models.Settings;
+using MESBlastBlockGenerator.Services;
 using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
 using System;
@@ -19,13 +21,15 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator
 {
-    public partial class MainWindowViewModel(IXmlGenerationService xmlGenerationService, Window mainWindow) : ObservableValidator
+    public partial class MainWindowViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, Window mainWindow) : ObservableValidator
     {
         private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
+        private readonly ISoapClientService _soapClientService = soapClientService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly Window _mainWindow = mainWindow;
         private readonly SnackbarHost _statusSnackbar = mainWindow.Find<SnackbarHost>("StatusSnackbar");
-        private static readonly InputParameters _inputParameters = SettingsManager.LoadSavedInputs();
+        private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
+        private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
@@ -129,7 +133,7 @@ namespace MESBlastBlockGenerator
         [ObservableProperty]
         private string _title = GetTitle();
         [ObservableProperty]
-        private bool _copyButtonEnabled = false;
+        private bool _isXmlGenerated = false;
         #endregion
 
         [RelayCommand]
@@ -155,10 +159,10 @@ namespace MESBlastBlockGenerator
                     $"designDiameter = {_inputParameters.DesignDiameter}, realDiameter = {_inputParameters.RealDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
                 string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
 
-                SettingsManager.SaveInputs(_inputParameters);
+                SettingsManager.SaveUserInputs(_inputParameters);
                 GeneratedXml = new TextDocument(xmlContent);
                 ShowMessage("XML успешно сгенерирован!");
-                CopyButtonEnabled = true;
+                IsXmlGenerated = true;
             }
             catch (Exception ex)
             {
@@ -170,6 +174,8 @@ namespace MESBlastBlockGenerator
         private async Task CopyToClipboardAsync()
         {
             _logger.Info("Инициализировано копирование результата в буфер обмена");
+            ClearStatus();
+
             if (!string.IsNullOrWhiteSpace(GeneratedXml.Text))
             {
                 if (_mainWindow.Clipboard is IClipboard clipboard)
@@ -184,6 +190,34 @@ namespace MESBlastBlockGenerator
                         ShowMessage($"Ошибка копирования: {ex.Message}", true);
                     }
                 }
+            }
+        }
+
+        [RelayCommand]
+        private async Task SendXmlAsync()
+        {
+            _logger.Info("Инициализирована отправка XML");
+            ClearStatus();
+
+            try
+            {
+                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text, _appSettings.SoapClient.EndpointUrl);
+
+                if (isSuccess)
+                {
+                    ShowMessage("ПМВ успешно передан!");
+                    _logger.Info("XML успешно отправлен и принят");
+                }
+                else
+                {
+                    ShowMessage("Ошибка при отправке XML", true);
+                    _logger.Error("Ошибка отправки XML через SOAP сервис");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка отправки: {ex.Message}", true);
+                _logger.Error(ex, "Неожиданная ошибка при отправке XML");
             }
         }
 

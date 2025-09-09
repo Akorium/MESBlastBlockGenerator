@@ -135,7 +135,8 @@
       <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output" Document="{Binding GeneratedXml}"/>
     </Border>
     <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
-      <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="button" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding CopyButtonEnabled}"/>
+      <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="button" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
+      <Button x:Name="SendButton" Content="Отправить в CS" Classes="button" Command="{Binding SendXmlCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
       <Button x:Name="GenerateButton" Content="Сгенерировать XML" Classes="button" Command="{Binding GenerateXmlCommand}"/>
     </StackPanel>
     <controls:SnackbarHost Grid.Row="0" Grid.RowSpan="7" x:Name="StatusSnackbar" HostName="{Binding $self.Name}" Foreground="{Binding StatusColor}"/>

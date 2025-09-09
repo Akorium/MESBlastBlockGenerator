@@ -1,16 +1,12 @@
 using Avalonia;
-using Material.Styles.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using MESBlastBlockGenerator.Services;
-using NLog;
-using Avalonia.Controls;
 
 namespace MESBlastBlockGenerator;
 
 public partial class App : Application
 {
-    private readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
@@ -21,8 +17,10 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
         {
             var mainWindow = new MainWindow();
-            var xmlService = new XmlGenerationService();
-            var viewModel = new MainWindowViewModel(xmlService, mainWindow);
+            var serializationService = new XmlSerializationService();
+            var xmlGenerationService = new XmlGenerationService(serializationService);
+            var soapClientService = new SoapClientService(serializationService);
+            var viewModel = new MainWindowViewModel(xmlGenerationService, soapClientService, mainWindow);
             mainWindow.DataContext = viewModel;
 
             desktopLifetime.MainWindow = mainWindow;

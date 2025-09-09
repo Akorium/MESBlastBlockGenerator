@@ -1,15 +1,15 @@
 ﻿using System.Xml.Serialization;
 using System.Xml;
 
-namespace MESBlastBlockGenerator.Models.SOAP
+namespace MESBlastBlockGenerator.Models.SOAP.Request
 {
     public class Message
     {
         [XmlIgnore]
-        public string XmlContent { get; set; }
+        public string? XmlContent { get; set; }
 
         [XmlText]
-        public XmlNode[] CDataContent
+        public XmlNode[]? CDataContent
         {
             get
             {
