@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using MESBlastBlockGenerator.Services;
 
+
 namespace MESBlastBlockGenerator;
 
 public partial class App : Application

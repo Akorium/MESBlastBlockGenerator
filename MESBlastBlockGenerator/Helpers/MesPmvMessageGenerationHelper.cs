@@ -1,6 +1,6 @@
-﻿using HarfBuzzSharp;
-using MESBlastBlockGenerator.Models;
+﻿using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
+using MESBlastBlockGenerator.Models.GeomixBlastProject;
 using NLog;
 using System;
 using System.Collections.Generic;
@@ -33,6 +33,107 @@ namespace MESBlastBlockGenerator.Helpers
             };
             return mesPmv;
         }
+        /*public static GeomixBlastProjects GenerateGeomixBlastProjects(InputParameters inputs)
+        {
+            List<Point> blastProjectPoints = GenerateBlastProjectPoints(inputs);
+            List<Well> wells = GenerateWells(inputs);
+        }*/
+
+        private static List<Well> GenerateWells(InputParameters inputs)
+        {
+            _logger.Debug("Инициализирована генерация скважин");
+
+            // Generate a unique blast project ID
+            string blastProjectId = Guid.NewGuid().ToString();
+
+            // Calculate rotation angle in radians
+            double rotationAngleRad = inputs.RotationAngle * Math.PI / 180.0;
+
+            // Calculate cosine and sine of the rotation angle
+            double cosAngle = Math.Cos(rotationAngleRad);
+            double sinAngle = Math.Sin(rotationAngleRad);
+
+            // Generate materials for the blast project
+            List<Charge> charge = GenerateCharge(inputs);
+
+            // Initialize list of holes
+            var wells = new List<Well>(inputs.MaxCol * inputs.MaxRow);
+
+            // Iterate over rows and columns to generate holes
+            for (int row = 0; row < inputs.MaxRow; row++)
+            {
+                for (int col = 0; col < inputs.MaxCol; col++)
+                {
+                    // Calculate hole coordinates
+                    (double x, double y) = CalculateCoords(inputs, cosAngle, sinAngle, row, col);
+
+                    // Generate a hole
+                    var well = GenerateWell(row, col, inputs, x, y, charge);
+
+                    // Add hole to the list
+                    wells.Add(well);
+                }
+            }
+            return wells;
+        }
+
+        private static Well GenerateWell(int row, int col, InputParameters inputs, double x, double y, List<Charge> charge)
+        {
+            var well = new Well
+            {
+                WellID = $"{row:D2}{col:D2}",
+                WellNumber = $"{row:D2}{col:D2}",
+                Depth = inputs.DesignDepth.ToString(CultureInfo.InvariantCulture),
+                X = x.ToString(CultureInfo.InvariantCulture),
+                Y = y.ToString(CultureInfo.InvariantCulture),
+                Z = inputs.BaseZ.ToString(CultureInfo.InvariantCulture),
+                DM = inputs.DesignDiameter.ToString(CultureInfo.InvariantCulture),
+                Charges = new Charges 
+                {
+                    ChargeList = charge
+                }
+            };
+            return well;
+        }
+
+        private static List<Charge> GenerateCharge(InputParameters inputs)
+        {
+            var charges = new List<Charge>();
+            var charge = new Charge
+            {
+                Quantity = inputs.MainChargeMass.ToString(CultureInfo.InvariantCulture),
+                Length = (inputs.DesignDepth - inputs.StemmingLength).ToString(CultureInfo.InvariantCulture)
+            };
+            charges.Add(charge);
+            return charges;
+        }
+
+        private static List<Point> GenerateBlastProjectPoints(InputParameters inputs)
+        {
+            var points = new List<Point>();
+            // Calculate rotation angle in radians
+            double rotationAngleRad = inputs.RotationAngle * Math.PI / 180.0;
+
+            // Calculate cosine and sine of the rotation angle
+            double cosAngle = Math.Cos(rotationAngleRad);
+            double sinAngle = Math.Sin(rotationAngleRad);
+
+            var cornerIndices = new (int row, int col)[]
+            {
+                (0, 0),
+                (0, inputs.MaxCol), 
+                (inputs.MaxRow, 0),
+                (inputs.MaxRow, inputs.MaxCol)
+            };
+
+            foreach (var (row, col) in cornerIndices)
+            {
+                (double x, double y) = CalculateCoords(inputs, cosAngle, sinAngle, row, col);
+                points.Add(new Point { X = x.ToString(), Y = y.ToString() });
+            }
+            return points;
+        }
+
         /// <summary>
         /// Generates a list of holes for the blast project.
         /// </summary>
@@ -64,7 +165,7 @@ namespace MESBlastBlockGenerator.Helpers
                 for (int col = 0; col < inputs.MaxCol; col++)
                 {
                     // Calculate hole coordinates
-                    (double x, double y) = CalculateHoleCoords(inputs, cosAngle, sinAngle, row, col);
+                    (double x, double y) = CalculateCoords(inputs, cosAngle, sinAngle, row, col);
 
                     // Generate a hole
                     var hole = GenerateHole(blastProjectId, row, col, inputs, x, y, materials);
@@ -201,7 +302,7 @@ namespace MESBlastBlockGenerator.Helpers
         /// <param name="row">Row number of the hole.</param>
         /// <param name="col">Column number of the hole.</param>
         /// <returns>The coordinates of the hole.</returns>
-        private static (double x, double y) CalculateHoleCoords(InputParameters inputs, double cosAngle, double sinAngle, int row, int col)
+        private static (double x, double y) CalculateCoords(InputParameters inputs, double cosAngle, double sinAngle, int row, int col)
         {
             // Calculate initial x and y coordinates based on row and column numbers
             double x = inputs.BaseX + col * inputs.Distance;

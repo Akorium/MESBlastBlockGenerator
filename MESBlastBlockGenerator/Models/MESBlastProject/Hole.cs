@@ -1,4 +1,5 @@
-﻿using System;
+﻿using MESBlastBlockGenerator.Models.MESBlastProject;
+using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
