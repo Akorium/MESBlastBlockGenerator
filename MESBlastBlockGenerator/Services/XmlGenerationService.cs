@@ -1,13 +1,9 @@
 ﻿using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
-using MESBlastBlockGenerator.Models.BlastProject;
 using MESBlastBlockGenerator.Models.SOAP;
 using MESBlastBlockGenerator.Models.SOAP.Request;
 using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
-using System;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
@@ -47,6 +43,18 @@ namespace MESBlastBlockGenerator.Services
                     }
                 };
                 return _serializationService.Serialize(envelope, _soapNamespaces);
+            });
+        }
+        public async Task<string> GenerateGeomixPMVAsync(InputParameters inputs)
+        {
+            return await Task.Run(() =>
+            {
+                //Форматирование самого сообщения и SOAP-конверта отличаются, поэтому мы их сериализуем отдельно
+                var geomixMesPmv = MesPmvMessageGenerationHelper.GenerateGeomixBlastProjects(inputs);
+                _logger.Debug("ПМВ Geomix сгенерирован");
+                var namespaces = new XmlSerializerNamespaces();
+                namespaces.Add("", "");
+                return _serializationService.Serialize(geomixMesPmv, namespaces);
             });
         }
     }

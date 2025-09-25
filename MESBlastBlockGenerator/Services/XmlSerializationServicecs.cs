@@ -1,10 +1,11 @@
-﻿using System;
+﻿using MESBlastBlockGenerator.Services.Interfaces;
+using NLog;
+using SkiaSharp;
+using System;
 using System.IO;
 using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
-using MESBlastBlockGenerator.Services.Interfaces;
-using NLog;
 
 namespace MESBlastBlockGenerator.Services
 {
@@ -18,18 +19,19 @@ namespace MESBlastBlockGenerator.Services
             OmitXmlDeclaration = true
         };
 
-        public string Serialize<T>(T obj, XmlSerializerNamespaces namespaces)
+        public string Serialize<T>(T obj, XmlSerializerNamespaces? namespaces = null)
         {
             try
             {
-                using var stream = new StringWriter();
-                using var writer = XmlWriter.Create(stream, _xmlSettings);
+                using var memoryStream = new MemoryStream();
+                using var writer = XmlWriter.Create(memoryStream, _xmlSettings);
 
                 var serializer = GetSerializer(typeof(T));
                 namespaces ??= new XmlSerializerNamespaces();
                 serializer.Serialize(writer, obj, namespaces);
+                writer.Flush();
 
-                return stream.ToString();
+                return Encoding.UTF8.GetString(memoryStream.ToArray());
             }
             catch (Exception ex)
             {

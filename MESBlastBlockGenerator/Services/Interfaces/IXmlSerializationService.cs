@@ -5,7 +5,7 @@ namespace MESBlastBlockGenerator.Services.Interfaces
 {
     public interface IXmlSerializationService
     {
-        string Serialize<T>(T obj, XmlSerializerNamespaces namespaces);
+        string Serialize<T>(T obj, XmlSerializerNamespaces? namespaces = null);
         T Deserialize<T>(string xmlContent) where T : class;
         XmlSerializer GetSerializer(Type type);
     }

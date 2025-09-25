@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Input.Platform;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -15,18 +13,15 @@ using NLog;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
-using System.Reflection;
 using System.Threading.Tasks;
 
-namespace MESBlastBlockGenerator
+namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class MainWindowViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, Window mainWindow) : ObservableValidator
+    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService) : ObservableValidator
     {
         private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
         private readonly ISoapClientService _soapClientService = soapClientService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
-        private readonly Window _mainWindow = mainWindow;
-        private readonly SnackbarHost _statusSnackbar = mainWindow.Find<SnackbarHost>("StatusSnackbar");
         private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
         private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
@@ -130,8 +125,6 @@ namespace MESBlastBlockGenerator
         [ObservableProperty]
         private IBrush _statusColor = Brushes.Green;
         [ObservableProperty]
-        private string _title = GetTitle();
-        [ObservableProperty]
         private bool _isXmlGenerated = false;
         #endregion
 
@@ -153,9 +146,8 @@ namespace MESBlastBlockGenerator
 
                 _logger.Debug($"Попытка генерации XML с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
                     $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
-                    $"dispersedCharge = {_inputParameters.DispersedCharge}, mainChargeMass = {_inputParameters.MainChargeMass}" +
-                    $"designDepth = {_inputParameters.DesignDepth}, realDepth = {_inputParameters.RealDepth}, {(_inputParameters.DispersedCharge ? $", secondaryChargeMass = {_inputParameters.SecondaryChargeMass}, " : "")} " +
-                    $"designDiameter = {_inputParameters.DesignDiameter}, realDiameter = {_inputParameters.RealDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
+                    $"mainChargeMass = {_inputParameters.MainChargeMass}, designDepth = {_inputParameters.DesignDepth}, " +
+                    $"designDiameter = {_inputParameters.DesignDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
                 string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
 
                 SettingsManager.SaveUserInputs(_inputParameters);
@@ -172,23 +164,27 @@ namespace MESBlastBlockGenerator
         [RelayCommand]
         private async Task CopyToClipboardAsync()
         {
-            _logger.Info("Инициализировано копирование результата в буфер обмена");
-            ClearStatus();
-
-            if (!string.IsNullOrWhiteSpace(GeneratedXml.Text))
+            try
             {
-                if (_mainWindow.Clipboard is IClipboard clipboard)
+                _logger.Info("Инициализировано копирование результата в буфер обмена");
+                ClearStatus();
+
+                var mainWindow = Avalonia.Application.Current.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
+                var window = mainWindow?.MainWindow;
+
+                if (window?.Clipboard != null)
                 {
-                    try
-                    {
-                        await clipboard.SetTextAsync(GeneratedXml.Text);
-                        ShowMessage("XML скопирован в буфер обмена!");
-                    }
-                    catch (Exception ex)
-                    {
-                        ShowMessage($"Ошибка копирования: {ex.Message}", true);
-                    }
+                    await window.Clipboard.SetTextAsync(GeneratedXml.Text);
+                    ShowMessage("XML успешно скопирован в буфер обмена!");
                 }
+                else
+                {
+                    ShowMessage("Не удалось получить доступ к буферу обмена", true);
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка копирования в буфер обмена: {ex.Message}", true);
             }
         }
 
@@ -226,22 +222,17 @@ namespace MESBlastBlockGenerator
             {
                 StatusColor = Brushes.Red;
                 _logger.Error(message);
+                SnackbarHost.Post(
+                    new SnackbarModel($"{message}", TimeSpan.FromSeconds(5)),
+                null, DispatcherPriority.Normal);
             }
             else
             {
                 _logger.Info(message);
+                SnackbarHost.Post(
+                    new SnackbarModel($"{message}", TimeSpan.FromSeconds(5)),
+                null, DispatcherPriority.Normal);
             }
-            SnackbarHost.Post(
-                new SnackbarModel(
-                    message,
-                    TimeSpan.FromSeconds(5)),
-                _statusSnackbar.HostName,
-                DispatcherPriority.Normal);
-        }
-        private static string GetTitle()
-        {
-            var version = Assembly.GetEntryAssembly()?.GetName().Version;
-            return $"MESBlastBlockGenerator v{version?.Major}.{version?.Minor}.{version?.Build}";
         }
         private void ClearStatus()
         {

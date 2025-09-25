@@ -1,144 +1,85 @@
 <Window xmlns="https://github.com/avaloniaui"
-        xmlns:vm="using:MESBlastBlockGenerator"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
         xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
-        xmlns:wpf="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
-        xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
         x:Class="MESBlastBlockGenerator.MainWindow"
         Title="{Binding Title}"
         Width="1280"
         Height="800"
         WindowStartupLocation="CenterScreen">
-  
-  <Window.Styles>
-    <Style Selector="TextBox.input">
-      <Setter Property="Width" Value="200"/>
-      <Setter Property="Theme" Value="{StaticResource FilledTextBox}"/>
-    </Style>
-    <Style Selector="Border.texteditor">
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="BorderBrush" Value="Black"/>
-      <Setter Property="CornerRadius" Value="3"/>
-    </Style>
-    <Style Selector="Button.button">
-      <Setter Property="HorizontalAlignment" Value="Center"/>
-    </Style>
-    <Style Selector="Grid.row">
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="Height" Value="65"/>
-    </Style>
-    <Style Selector="TextBlock.status-text">
-      <Setter Property="HorizontalAlignment" Value="Center"/>
-    </Style>
-    <Style Selector="AvaloniaEdit|TextEditor.xml-output">
-      <Setter Property="IsReadOnly" Value="True"/>
-      <Setter Property="WordWrap" Value="True"/>
-      <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
-      <Setter Property="SyntaxHighlighting" Value="XML"/>
-     </Style>
-    <Style Selector="Label.label">
-      <Setter Property="VerticalAlignment" Value="Center"/>
-      <Setter Property="HorizontalAlignment" Value="Center"/>
-      <Setter Property="FontSize" Value="12"/>
-    </Style>
-  </Window.Styles>
 
-  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="25">
-    <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center"/>
-    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
-        <StackPanel Grid.Column="0">
-          <Label Content="Количество рядов скважин" Classes="label"/>
-          <TextBox x:Name="MaxRowTextBox" Classes="input" Text="{Binding MaxRow, Mode=TwoWay}"/>
+  <SplitView x:Name="MainSplitView"
+             IsPaneOpen="{Binding IsSidePanelOpen, Mode=TwoWay}"
+             OpenPaneLength="250"
+             DisplayMode="Overlay"
+             PanePlacement="Left">
+
+    <SplitView.Pane>
+      <ScrollViewer>
+        <StackPanel>
+          <controls:ColorZone Mode="PrimaryLight" Height="100" DockPanel.Dock="Left">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+              <TextBlock Classes="Headline6"
+                         Text="Меню"
+                         HorizontalAlignment="Center"/>
+            </StackPanel>
+          </controls:ColorZone>
+          <StackPanel Classes="NoScroll">
+            <Button Classes="NavigationDrawerItem"
+                    Command="{Binding NavigateToMESGeneratorCommand}"
+                    HorizontalContentAlignment="Left"
+                    Padding="16,0"
+                    Height="32"
+                    DockPanel.Dock="Left">
+              <StackPanel Orientation="Horizontal">
+                <avalonia:MaterialIcon Kind="Calculator" Width="24" Height="24"/>
+                <TextBlock Text="Генератор MES ПМВ"/>
+              </StackPanel>
+            </Button>
+            <Button Classes="NavigationDrawerItem"
+                    Command="{Binding NavigateToGeomixGeneratorCommand}"
+                    HorizontalContentAlignment="Left"
+                    Padding="16,0"
+                    Height="32">
+              <StackPanel Orientation="Horizontal">
+                <avalonia:MaterialIcon Kind="Calculator" Width="24" Height="24"/>
+                <TextBlock Text="Генератор Geomix ПМВ"/>
+              </StackPanel>
+            </Button>
+          </StackPanel>
         </StackPanel>
-        <StackPanel Grid.Column="1">
-          <Label Content="Координата X первой скважины, м" Classes="label"/>
-          <TextBox x:Name="BaseXTextBox" Classes="input" Text="{Binding BaseX, Mode=TwoWay}"/> 
-        </StackPanel>
-        <StackPanel Grid.Column="2">
-          <Label Content="Название карьера" Classes="label"/>
-          <TextBox x:Name="PitNameTextBox" Classes="input" Text="{Binding PitName, Mode=TwoWay}"/>
-        </StackPanel>
-      <StackPanel Grid.Column="3">
-        <Label Content="Проектный диаметр скважин, мм" Classes="label"/>
-        <TextBox x:Name="DesignDiameterTextBox" Classes="input" Text="{Binding DesignDiameter, Mode=TwoWay}"/>
-      </StackPanel>  
-      <CheckBox Grid.Column="4" x:Name="DispersedChargeCheckBox" IsChecked="{Binding DispersedCharge, Mode=TwoWay}" 
-                Content="Рассредоточенный заряд" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-      <CheckBox Grid.Column="5" x:Name="IsDrillingCheckBox" IsChecked="{Binding IsDrilling, Mode=TwoWay}"
-                Content="Факт бурения" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+      </ScrollViewer>
+    </SplitView.Pane>
+
+    <Grid>
+      <controls:ColorZone VerticalAlignment="Top"
+                          HorizontalAlignment="Stretch"
+                          Height="56"
+                          Mode="PrimaryMid"
+                          ZIndex="2">
+        <Grid Margin="16">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="32" />
+            <ColumnDefinition Width="*" />
+          </Grid.ColumnDefinitions>
+
+          <Button Name="NavDrawerSwitch"
+                  Command="{Binding ToggleSidePanelCommand}"
+                  Theme="{StaticResource MaterialFlatButton}"
+                  Width="32" Height="32" Padding="4"
+                  Background="Transparent" BorderThickness="0">
+            <avalonia:MaterialIcon Kind="Menu" Width="24" Height="24" />
+          </Button>
+
+          <TextBlock Grid.Column="1"
+                     Classes="Headline6"
+                     Text="{Binding Title}"
+                     VerticalAlignment="Center" />
+        </Grid>
+      </controls:ColorZone>
+      
+      <ContentControl Content="{Binding CurrentView}"
+                      Margin="0,56,0,0"/>
     </Grid>
-    <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
-      <StackPanel Grid.Column="0">
-        <Label Content="Количество столбцов скважин" Classes="label"/>
-        <TextBox x:Name="MaxColTextBox" Classes="input" Text="{Binding MaxCol, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="1">
-        <Label Content="Координата Y первой скважины, м" Classes="label"/>
-        <TextBox x:Name="BaseYTextBox" Classes="input" Text="{Binding BaseY, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="2">
-        <Label Content="Горизонт" Classes="label"/>
-        <TextBox x:Name="LevelTextBox" Classes="input" Text="{Binding Level, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="3">
-        <Label Content="Проектная глубина скважин, м" Classes="label"/>
-        <TextBox x:Name="DesignDepthTextBox" Classes="input" Text="{Binding DesignDepth, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="4">
-        <Label Content="Масса основного заряда, кг" Classes="label"/>
-        <TextBox x:Name="MainChargeMassTextBox" Classes="input" Text="{Binding MainChargeMass, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Фактический диаметр скважин, мм" Classes="label"/>
-        <TextBox x:Name="RealDiameterTextBox" Classes="input" Text="{Binding RealDiameter, Mode=TwoWay}"/>
-      </StackPanel>
-    </Grid>
-    <Grid Grid.Row="3" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
-      <StackPanel Grid.Column="0">
-        <Label Content="Расстояние между скважинами, м" Classes="label"/>
-        <TextBox x:Name="DistanceTextBox" Classes="input" Text="{Binding Distance, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="1">
-        <Label Content="Координата Z скважин, м" Classes="label"/>
-        <TextBox x:Name="BaseZTextBox" Classes="input" Text="{Binding BaseZ, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="2">
-        <Label Content="Номер блока" Classes="label"/>
-        <TextBox x:Name="BlockNumberTextBox" Classes="input" Text="{Binding BlockNumber, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="3">
-        <Label Content="Длина забойки, м" Classes="label"/>
-        <TextBox x:Name="StemmingLengthTextBox" Classes="input" Text="{Binding StemmingLength, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="4" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}">
-        <Label Content="Масса второго заряда, кг" Classes="label"/>
-        <TextBox x:Name="SecondaryChargeMassTextBox" Classes="input" Text="{Binding SecondaryChargeMass, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Фактическая глубина скважин, м" Classes="label"/>
-        <TextBox x:Name="RealDepthTextBox" Classes="input" Text="{Binding RealDepth, Mode=TwoWay}"/>
-      </StackPanel>
-    </Grid>
-    <Grid Grid.Row="4" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
-      <StackPanel Grid.Column="0">
-        <Label Content="Угол поворота сетки, °" Classes="label"/>
-        <TextBox x:Name="RotationAngleTextBox" Classes="input" Text="{Binding RotationAngle, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Отклонение координат, м" Classes="label"/>
-        <TextBox x:Name="CoordinatesDeviationTextBox" Classes="input" Text="{Binding CoordinatesDeviation, Mode=TwoWay}"/>
-      </StackPanel>
-    </Grid>
-    <Border Grid.Row="5" Classes="texteditor">
-      <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output" Document="{Binding GeneratedXml}"/>
-    </Border>
-    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
-      <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="button" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
-      <Button x:Name="SendButton" Content="Отправить в CS" Classes="button" Command="{Binding SendXmlCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
-      <Button x:Name="GenerateButton" Content="Сгенерировать XML" Classes="button" Command="{Binding GenerateXmlCommand}"/>
-    </StackPanel>
-    <controls:SnackbarHost Grid.Row="0" Grid.RowSpan="7" x:Name="StatusSnackbar" HostName="{Binding $self.Name}" Foreground="{Binding StatusColor}"/>
-  </Grid>
+  </SplitView>
 </Window>

@@ -6,7 +6,7 @@ namespace MESBlastBlockGenerator.Models.GeomixBlastProject
     public class Block
     {
         [XmlAttribute("BlockId")]
-        public int BlockId { get; set; }
+        public string BlockId { get; set; } = string.Empty;
         [XmlElement("Points")]
         public Points Points { get; set; } = new();
         [XmlElement("Wels")]

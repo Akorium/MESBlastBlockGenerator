@@ -6,6 +6,6 @@ namespace MESBlastBlockGenerator.Models.GeomixBlastProject
     public class Blocks
     {
         [XmlElement("Block")]
-        public List<Block> Blocklist { get; set; } = [];
+        public List<Block> BlockList { get; set; } = [];
     }
 }

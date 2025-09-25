@@ -26,7 +26,7 @@ namespace MESBlastBlockGenerator.Models.GeomixBlastProject
         public string Delay { get; set; } = "0";
 
         [XmlAttribute("D1")]
-        public string DetonatorType2 { get; set; } = "";
+        public string DetonatorType2 { get; set; } = string.Empty;
 
         [XmlAttribute("DL1")]
         public string Delay2 { get; set; } = "0";

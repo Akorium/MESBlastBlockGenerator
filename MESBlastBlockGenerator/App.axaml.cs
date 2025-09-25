@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using MESBlastBlockGenerator.Services;
+using MESBlastBlockGenerator.ViewModels;
 
 
 namespace MESBlastBlockGenerator;
@@ -17,12 +18,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
         {
-            var mainWindow = new MainWindow();
-            var serializationService = new XmlSerializationService();
-            var xmlGenerationService = new XmlGenerationService(serializationService);
-            var soapClientService = new SoapClientService(serializationService);
-            var viewModel = new MainWindowViewModel(xmlGenerationService, soapClientService, mainWindow);
-            mainWindow.DataContext = viewModel;
+            var navigationViewModel = new NavigationViewModel();
+            var mainWindow = new MainWindow { DataContext = navigationViewModel };
 
             desktopLifetime.MainWindow = mainWindow;
         }

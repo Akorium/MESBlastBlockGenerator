@@ -1,0 +1,14 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:md="https://github.com/whistyun/Markdown.Avalonia"
+             x:Class="MESBlastBlockGenerator.Views.MainView">
+
+  <Grid RowDefinitions="Auto,*" RowSpacing="15">
+    <TextBlock Text="Генератор проектов для системы Minemanager" FontSize="40" Grid.Row="0" HorizontalAlignment="Center"/>
+    <md:MarkdownScrollViewer Name="ChangelogViewer"
+                             Grid.Row="1"
+                            Source="avares://MESBlastBlockGenerator/ChangeLog.md"/>
+  </Grid>
+</UserControl>

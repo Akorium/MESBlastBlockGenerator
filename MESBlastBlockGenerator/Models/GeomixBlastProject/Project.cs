@@ -5,7 +5,7 @@ namespace MESBlastBlockGenerator.Models.GeomixBlastProject
     public class Project
     {
         [XmlAttribute("ProjectID")]
-        public string ProjectID { get; set; } = string.Empty;
+        public string ProjectId { get; set; } = string.Empty;
         [XmlAttribute("DateBegin")]
         public string DateBegin { get; set; } = string.Empty;
         [XmlAttribute("DateEnd")]

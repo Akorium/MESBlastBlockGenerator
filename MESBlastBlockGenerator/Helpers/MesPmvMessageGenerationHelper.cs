@@ -33,18 +33,38 @@ namespace MESBlastBlockGenerator.Helpers
             };
             return mesPmv;
         }
-        /*public static GeomixBlastProjects GenerateGeomixBlastProjects(InputParameters inputs)
+        public static GeomixBlastProjects GenerateGeomixBlastProjects(InputParameters inputs)
         {
-            List<Point> blastProjectPoints = GenerateBlastProjectPoints(inputs);
-            List<Well> wells = GenerateWells(inputs);
-        }*/
+            var projectId = $"{inputs.Level}-{inputs.BlockNumber}";
+            var blastProjectPoints = GenerateBlastProjectPoints(inputs);
+            var wells = GenerateWells(inputs);
+
+            var project = new Project
+            {
+                ProjectId = projectId,
+                Blocks = new Blocks
+                {
+                    BlockList =
+            [
+                new Block
+                {
+                    BlockId = projectId,
+                    Points = new Points { Point = blastProjectPoints },
+                    Wells = new Wells { WellsList = wells }
+                }
+            ]
+                }
+            };
+
+            return new GeomixBlastProjects
+            {
+                ProjectList = [project]
+            };
+        }
 
         private static List<Well> GenerateWells(InputParameters inputs)
         {
             _logger.Debug("Инициализирована генерация скважин");
-
-            // Generate a unique blast project ID
-            string blastProjectId = Guid.NewGuid().ToString();
 
             // Calculate rotation angle in radians
             double rotationAngleRad = inputs.RotationAngle * Math.PI / 180.0;

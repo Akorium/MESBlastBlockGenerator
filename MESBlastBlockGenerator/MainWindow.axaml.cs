@@ -1,6 +1,4 @@
 using Avalonia.Controls;
-using AvaloniaEdit.Document;
-using System;
 
 namespace MESBlastBlockGenerator
 {
