@@ -1,6 +1,7 @@
-﻿using System.Xml.Serialization;
+﻿using MESBlastBlockGenerator.Models.BlastProject;
+using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator.Models.BlastProject
+namespace MESBlastBlockGenerator.Models.MESBlastProject
 {
     [XmlRoot(ElementName = "mes_pmv", Namespace = "")]
     public class MesPmv

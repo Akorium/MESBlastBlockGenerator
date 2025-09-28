@@ -11,7 +11,8 @@ namespace MESBlastBlockGenerator.ViewModels
     public partial class NavigationViewModel : ObservableObject
     {
         private static readonly IXmlSerializationService _serializationService = new XmlSerializationService();
-        private static readonly IXmlGenerationService _xmlGenerationService = new XmlGenerationService(_serializationService);
+        private static readonly ICoordinateCalculatorService _coordinateCalculatorService = new CoordinateCalculatorService();
+        private static readonly IXmlGenerationService _xmlGenerationService = new XmlGenerationService(_serializationService, _coordinateCalculatorService);
         private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService);
         [ObservableProperty]
         private UserControl _currentView = new MainView();

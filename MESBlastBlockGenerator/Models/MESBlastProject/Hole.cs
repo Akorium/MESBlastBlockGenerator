@@ -1,9 +1,9 @@
-﻿using MESBlastBlockGenerator.Models.MESBlastProject;
+﻿using MESBlastBlockGenerator.Models.BlastProject;
 using System;
 using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator.Models.BlastProject
+namespace MESBlastBlockGenerator.Models.MESBlastProject
 {
     public class Hole
     {

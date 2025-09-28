@@ -129,7 +129,7 @@ namespace MESBlastBlockGenerator.ViewModels
         #endregion
 
         [RelayCommand]
-        private async Task GenerateXmlAsync()
+        private void GenerateXml()
         {
             _logger.Info("Инициализирована генерация XML");
             ClearStatus();
@@ -148,7 +148,7 @@ namespace MESBlastBlockGenerator.ViewModels
                     $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
                     $"mainChargeMass = {_inputParameters.MainChargeMass}, designDepth = {_inputParameters.DesignDepth}, " +
                     $"designDiameter = {_inputParameters.DesignDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
-                string xmlContent = await _xmlGenerationService.GenerateXmlContentAsync(_inputParameters);
+                string xmlContent = _xmlGenerationService.GenerateMESMassExplosionProject(_inputParameters);
 
                 SettingsManager.SaveUserInputs(_inputParameters);
                 GeneratedXml = new TextDocument(xmlContent);

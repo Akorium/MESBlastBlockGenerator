@@ -107,7 +107,7 @@ namespace MESBlastBlockGenerator.ViewModels
         #endregion
 
         [RelayCommand]
-        private async Task GenerateXmlAsync()
+        private void GenerateXml()
         {
             _logger.Info("Инициализирована генерация XML");
             ClearStatus();
@@ -127,7 +127,7 @@ namespace MESBlastBlockGenerator.ViewModels
                     $"dispersedCharge = {_inputParameters.DispersedCharge}, mainChargeMass = {_inputParameters.MainChargeMass}" +
                     $"designDepth = {_inputParameters.DesignDepth}, realDepth = {_inputParameters.RealDepth}, {(_inputParameters.DispersedCharge ? $", secondaryChargeMass = {_inputParameters.SecondaryChargeMass}, " : "")} " +
                     $"designDiameter = {_inputParameters.DesignDiameter}, realDiameter = {_inputParameters.RealDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
-                string xmlContent = await _xmlGenerationService.GenerateGeomixPMVAsync(_inputParameters);
+                string xmlContent = _xmlGenerationService.GenerateGeomixMassExplosionProject(_inputParameters);
 
                 SettingsManager.SaveUserInputs(_inputParameters);
                 GeneratedXml = new TextDocument(xmlContent);

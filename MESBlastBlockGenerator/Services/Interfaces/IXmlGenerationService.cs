@@ -5,7 +5,7 @@ namespace MESBlastBlockGenerator.Services.Interfaces
 {
     public interface IXmlGenerationService
     {
-        Task<string> GenerateXmlContentAsync(InputParameters inputs);
-        Task<string> GenerateGeomixPMVAsync(InputParameters inputs);
+        string GenerateMESMassExplosionProject(InputParameters inputs);
+        string GenerateGeomixMassExplosionProject(InputParameters inputs);
     }
 }

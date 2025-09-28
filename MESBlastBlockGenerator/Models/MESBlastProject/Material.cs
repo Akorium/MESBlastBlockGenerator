@@ -1,7 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using MESBlastBlockGenerator.Models.BlastProject;
+using System.Collections.Generic;
 using System.Xml.Serialization;
 
-namespace MESBlastBlockGenerator.Models.BlastProject
+namespace MESBlastBlockGenerator.Models.MESBlastProject
 {
     public class Material
     {
