@@ -17,13 +17,12 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService) : ObservableValidator
+    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters) : ObservableValidator
     {
         private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
         private readonly ISoapClientService _soapClientService = soapClientService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
-        private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
+        private readonly InputParameters _inputParameters = inputParameters;
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
@@ -31,95 +30,95 @@ namespace MESBlastBlockGenerator.ViewModels
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _maxRow = _inputParameters.MaxRow.ToString(_culture);
+        private string _maxRow = inputParameters.MaxRow.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _maxCol = _inputParameters.MaxCol.ToString(_culture);
+        private string _maxCol = inputParameters.MaxCol.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _rotationAngle = _inputParameters.RotationAngle.ToString(_culture);
+        private string _rotationAngle = inputParameters.RotationAngle.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _baseX = _inputParameters.BaseX.ToString(_culture);
+        private string _baseX = inputParameters.BaseX.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _baseY = _inputParameters.BaseY.ToString(_culture);
+        private string _baseY = inputParameters.BaseY.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _baseZ = _inputParameters.BaseZ.ToString(_culture);
+        private string _baseZ = inputParameters.BaseZ.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _distance = _inputParameters.Distance.ToString(_culture);
+        private string _distance = inputParameters.Distance.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        private string _pitName = _inputParameters.PitName;
+        private string _pitName = inputParameters.PitName;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _level = _inputParameters.Level.ToString(_culture);
+        private string _level = inputParameters.Level.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _blockNumber = _inputParameters.BlockNumber.ToString(_culture);
+        private string _blockNumber = inputParameters.BlockNumber.ToString(_culture);
         [ObservableProperty]
-        private bool _dispersedCharge = _inputParameters.DispersedCharge;
-        [ObservableProperty]
-        [NotifyDataErrorInfo]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _mainChargeMass = _inputParameters.MainChargeMass.ToString(_culture);
+        private bool _dispersedCharge = inputParameters.DispersedCharge;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _secondaryChargeMass = _inputParameters.SecondaryChargeMass.ToString(_culture);
+        private string _mainChargeMass = inputParameters.MainChargeMass.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _designDepth = _inputParameters.DesignDepth.ToString(_culture);
+        private string _secondaryChargeMass = inputParameters.SecondaryChargeMass.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _realDepth = _inputParameters.RealDepth.ToString(_culture);
+        private string _designDepth = inputParameters.DesignDepth.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _realDepth = inputParameters.RealDepth.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _designDiameter = _inputParameters.DesignDiameter.ToString(_culture);
+        private string _designDiameter = inputParameters.DesignDiameter.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _realDiameter = _inputParameters.RealDiameter.ToString(_culture);
+        private string _realDiameter = inputParameters.RealDiameter.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _coordinatesDeviation = _inputParameters.CoordinatesDeviation.ToString(_culture);
+        private string _coordinatesDeviation = inputParameters.CoordinatesDeviation.ToString(_culture);
         [ObservableProperty]
-        private bool _isDrilling = _inputParameters.IsDrilling;
+        private bool _isDrilling = inputParameters.IsDrilling;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _stemmingLength = _inputParameters.StemmingLength.ToString(_culture);
+        private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
         private TextDocument _generatedXml = new();
         [ObservableProperty]
@@ -196,7 +195,7 @@ namespace MESBlastBlockGenerator.ViewModels
 
             try
             {
-                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text, _appSettings.SoapClient.EndpointUrl);
+                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text);
 
                 if (isSuccess)
                 {

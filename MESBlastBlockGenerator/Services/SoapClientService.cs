@@ -13,22 +13,24 @@ namespace MESBlastBlockGenerator.Services
     {
         private readonly IXmlSerializationService _serializationService;
         private readonly HttpClient _httpClient;
+        private readonly string _endpointUrl;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public SoapClientService(IXmlSerializationService serializationService)
+        public SoapClientService(IXmlSerializationService serializationService, string endpointUrl)
         {
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(30)
             };
             _serializationService = serializationService;
+            _endpointUrl = endpointUrl;
         }
 
-        public async Task<bool> SendXmlAsync(string xmlContent, string endpointUrl)
+        public async Task<bool> SendXmlAsync(string xmlContent)
         {
             try
             {
-                var response = await SendXmlWithResponseAsync(xmlContent, endpointUrl);
+                var response = await SendXmlWithResponseAsync(xmlContent, _endpointUrl);
                 return response != null && IsSuccessResponse(response);
             }
             catch (Exception ex)
@@ -38,7 +40,7 @@ namespace MESBlastBlockGenerator.Services
             }
         }
 
-        public async Task<Envelope<ResponseBody>?> SendXmlWithResponseAsync(string xmlContent, string endpointUrl)
+        private async Task<Envelope<ResponseBody>?> SendXmlWithResponseAsync(string xmlContent, string endpointUrl)
         {
             try
             {

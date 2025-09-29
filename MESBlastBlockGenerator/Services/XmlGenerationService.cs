@@ -260,7 +260,7 @@ namespace MESBlastBlockGenerator.Services
         /// <returns>A GeomixBlastProjects object representing the generated blast project.</returns>
         private GeomixBlastProjects GenerateGeomixBlastProjects(InputParameters inputs)
         {
-            var projectId = $"{inputs.Level}-{inputs.BlockNumber}";
+            var projectId = $"{inputs.PitName}{inputs.Level}-{inputs.BlockNumber}";
             var (cosAngle, sinAngle) = _coordinateCalculator.PrecalculateRotation(inputs.RotationAngle);
             _logger.Debug($"Generating points for Geomix mass explosion project...");
             var blastProjectPoints = GenerateGeomixPoints(inputs, cosAngle, sinAngle);

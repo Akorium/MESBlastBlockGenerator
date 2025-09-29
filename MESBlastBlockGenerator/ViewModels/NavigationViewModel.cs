@@ -1,6 +1,9 @@
 ﻿using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using MESBlastBlockGenerator.Helpers;
+using MESBlastBlockGenerator.Models;
+using MESBlastBlockGenerator.Models.Settings;
 using MESBlastBlockGenerator.Services;
 using MESBlastBlockGenerator.Services.Interfaces;
 using MESBlastBlockGenerator.Views;
@@ -13,7 +16,9 @@ namespace MESBlastBlockGenerator.ViewModels
         private static readonly IXmlSerializationService _serializationService = new XmlSerializationService();
         private static readonly ICoordinateCalculatorService _coordinateCalculatorService = new CoordinateCalculatorService();
         private static readonly IXmlGenerationService _xmlGenerationService = new XmlGenerationService(_serializationService, _coordinateCalculatorService);
-        private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService);
+        private static readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
+        private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService, _appSettings.SoapClient.EndpointUrl);
+        private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
         [ObservableProperty]
         private UserControl _currentView = new MainView();
 
@@ -31,7 +36,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToMESGenerator()
         {
-            var mesGeneratorViewModel = new MESGeneratorViewModel(_xmlGenerationService, _soapClientService);
+            var mesGeneratorViewModel = new MESGeneratorViewModel(_xmlGenerationService, _soapClientService, _inputParameters);
             var mesGeneratorView = new MESGeneratorView { DataContext = mesGeneratorViewModel };
 
             CurrentView = mesGeneratorView;
@@ -40,7 +45,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToGeomixGenerator()
         {
-            var geomixGeneratorViewModel = new GeomixGeneratorViewModel(_xmlGenerationService);
+            var geomixGeneratorViewModel = new GeomixGeneratorViewModel(_xmlGenerationService, _inputParameters);
             var geomixGeneratorView = new GeomixGeneratorView { DataContext = geomixGeneratorViewModel };
 
             CurrentView = geomixGeneratorView;

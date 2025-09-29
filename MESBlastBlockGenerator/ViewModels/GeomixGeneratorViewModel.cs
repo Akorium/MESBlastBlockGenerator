@@ -1,5 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Media;
+﻿using Avalonia.Media;
 using Avalonia.Threading;
 using AvaloniaEdit.Document;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -8,22 +7,21 @@ using Material.Styles.Controls;
 using Material.Styles.Models;
 using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
-using MESBlastBlockGenerator.Models.Settings;
 using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class GeomixGeneratorViewModel(IXmlGenerationService xmlGenerationService) : ObservableValidator
+    public partial class GeomixGeneratorViewModel(IXmlGenerationService xmlGenerationService, InputParameters inputParameters) : ObservableValidator
     {
         private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
+        private readonly InputParameters _inputParameters = inputParameters;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
-        private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
-        private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
@@ -31,73 +29,73 @@ namespace MESBlastBlockGenerator.ViewModels
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _maxRow = _inputParameters.MaxRow.ToString(_culture);
+        private string _maxRow = inputParameters.MaxRow.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _maxCol = _inputParameters.MaxCol.ToString(_culture);
+        private string _maxCol = inputParameters.MaxCol.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _rotationAngle = _inputParameters.RotationAngle.ToString(_culture);
+        private string _rotationAngle = inputParameters.RotationAngle.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _baseX = _inputParameters.BaseX.ToString(_culture);
+        private string _baseX = inputParameters.BaseX.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _baseY = _inputParameters.BaseY.ToString(_culture);
+        private string _baseY = inputParameters.BaseY.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _baseZ = _inputParameters.BaseZ.ToString(_culture);
+        private string _baseZ = inputParameters.BaseZ.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _distance = _inputParameters.Distance.ToString(_culture);
+        private string _distance = inputParameters.Distance.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        private string _pitName = _inputParameters.PitName;
+        private string _pitName = inputParameters.PitName;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _level = _inputParameters.Level.ToString(_culture);
+        private string _level = inputParameters.Level.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _blockNumber = _inputParameters.BlockNumber.ToString(_culture);
+        private string _blockNumber = inputParameters.BlockNumber.ToString(_culture);
         [ObservableProperty]
-        private bool _dispersedCharge = _inputParameters.DispersedCharge;
-        [ObservableProperty]
-        [NotifyDataErrorInfo]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _mainChargeMass = _inputParameters.MainChargeMass.ToString(_culture);
+        private bool _dispersedCharge = inputParameters.DispersedCharge;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _designDepth = _inputParameters.DesignDepth.ToString(_culture);
+        private string _mainChargeMass = inputParameters.MainChargeMass.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _designDepth = inputParameters.DesignDepth.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _designDiameter = _inputParameters.DesignDiameter.ToString(_culture);
+        private string _designDiameter = inputParameters.DesignDiameter.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _stemmingLength = _inputParameters.StemmingLength.ToString(_culture);
+        private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
         private TextDocument _generatedXml = new();
         [ObservableProperty]
@@ -141,7 +139,7 @@ namespace MESBlastBlockGenerator.ViewModels
         }
 
         [RelayCommand]
-        private async Task CopyToClipboardAsync()
+        private async Task CopyToClipboard()
         {
             try
             {
@@ -164,6 +162,61 @@ namespace MESBlastBlockGenerator.ViewModels
             catch (Exception ex)
             {
                 ShowMessage($"Ошибка копирования в буфер обмена: {ex.Message}", true);
+            }
+        }
+        [RelayCommand]
+        private async Task SaveXmlToFileAsync()
+        {
+            try
+            {
+                _logger.Info("Инициализировано сохранение XML в файл");
+
+                var mainWindow = Avalonia.Application.Current.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
+                var window = mainWindow?.MainWindow;
+
+                if (window == null)
+                {
+                    ShowMessage("Не удалось получить главное окно", true);
+                    return;
+                }
+
+                var file = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                {
+                    Title = "Сохранить XML файл",
+                    FileTypeChoices =
+                    [
+                        new Avalonia.Platform.Storage.FilePickerFileType("XML файлы")
+                        {
+                            Patterns = ["*.xml"],
+                            MimeTypes = ["application/xml", "text/xml"]
+                        },
+                        new Avalonia.Platform.Storage.FilePickerFileType("Все файлы")
+                        {
+                            Patterns = ["*"]
+                        }
+                    ],
+                    SuggestedFileName = $"{_inputParameters.PitName}{_inputParameters.Level}-{_inputParameters.BlockNumber}.xml"
+                });
+
+                if (file != null)
+                {
+                    using var stream = await file.OpenWriteAsync();
+                    using var writer = new StreamWriter(stream);
+                    await writer.WriteAsync(GeneratedXml.Text);
+                    await writer.FlushAsync();
+
+                    ShowMessage($"XML успешно сохранен в файл: {file.Path}");
+                    _logger.Info($"XML файл сохранен: {file.Path}");
+                }
+                else
+                {
+                    ShowMessage("Сохранение отменено пользователем");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowMessage($"Ошибка сохранения файла: {ex.Message}", true);
+                _logger.Error(ex, "Ошибка сохранения XML файла");
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
-using SkiaSharp;
 using System;
 using System.IO;
 using System.Text;
@@ -23,15 +22,14 @@ namespace MESBlastBlockGenerator.Services
         {
             try
             {
-                using var memoryStream = new MemoryStream();
-                using var writer = XmlWriter.Create(memoryStream, _xmlSettings);
+                using var stream = new StringWriter();
+                using var writer = XmlWriter.Create(stream, _xmlSettings);
 
                 var serializer = GetSerializer(typeof(T));
                 namespaces ??= new XmlSerializerNamespaces();
                 serializer.Serialize(writer, obj, namespaces);
-                writer.Flush();
 
-                return Encoding.UTF8.GetString(memoryStream.ToArray());
+                return stream.ToString();
             }
             catch (Exception ex)
             {

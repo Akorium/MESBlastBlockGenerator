@@ -109,6 +109,7 @@
     </Border>
     <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
       <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="button" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
+      <Button x:Name="SaveButton" Content="Cохранить в файл" Classes="button" Command="{Binding SaveXmlToFileCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
       <Button x:Name="GenerateButton" Content="Сгенерировать XML" Classes="button" Command="{Binding GenerateXmlCommand}"/>
     </StackPanel>
     <controls:SnackbarHost Grid.Row="0" Grid.RowSpan="7" x:Name="StatusSnackbar" HostName="{Binding $self.Name}" Foreground="{Binding StatusColor}"/>
