@@ -13,24 +13,22 @@ namespace MESBlastBlockGenerator.Services
     {
         private readonly IXmlSerializationService _serializationService;
         private readonly HttpClient _httpClient;
-        private readonly string _endpointUrl;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-        public SoapClientService(IXmlSerializationService serializationService, string endpointUrl)
+        public SoapClientService(IXmlSerializationService serializationService)
         {
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(30)
             };
             _serializationService = serializationService;
-            _endpointUrl = endpointUrl;
         }
 
-        public async Task<bool> SendXmlAsync(string xmlContent)
+        public async Task<bool> SendXmlAsync(string xmlContent, string endpointUrl)
         {
             try
             {
-                var response = await SendXmlWithResponseAsync(xmlContent, _endpointUrl);
+                var response = await SendXmlWithResponseAsync(xmlContent, endpointUrl);
                 return response != null && IsSuccessResponse(response);
             }
             catch (Exception ex)

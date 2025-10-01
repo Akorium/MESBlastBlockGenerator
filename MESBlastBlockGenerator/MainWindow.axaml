@@ -17,7 +17,7 @@
     <SplitView.Pane>
       <ScrollViewer>
         <StackPanel>
-          <controls:ColorZone Mode="PrimaryLight" Height="100" DockPanel.Dock="Left">
+          <controls:ColorZone Mode="PrimaryDark" Height="100" DockPanel.Dock="Left">
             <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
               <TextBlock Classes="Headline6"
                          Text="Меню"
@@ -25,7 +25,7 @@
             </StackPanel>
           </controls:ColorZone>
           <StackPanel Classes="NoScroll">
-            <Button Classes="NavigationDrawerItem"
+            <Button Classes="dark"
                     Command="{Binding NavigateToMESGeneratorCommand}"
                     HorizontalContentAlignment="Left"
                     Padding="16,0"
@@ -36,7 +36,7 @@
                 <TextBlock Text="Генератор MES ПМВ"/>
               </StackPanel>
             </Button>
-            <Button Classes="NavigationDrawerItem"
+            <Button Classes="dark"
                     Command="{Binding NavigateToGeomixGeneratorCommand}"
                     HorizontalContentAlignment="Left"
                     Padding="16,0"
@@ -44,6 +44,16 @@
               <StackPanel Orientation="Horizontal">
                 <avalonia:MaterialIcon Kind="Calculator" Width="24" Height="24"/>
                 <TextBlock Text="Генератор Geomix ПМВ"/>
+              </StackPanel>
+            </Button>
+            <Button Classes="dark"
+                   Command="{Binding NavigateToSettingsCommand}"
+                   HorizontalContentAlignment="Left"
+                   Padding="16,0"
+                   Height="32">
+              <StackPanel Orientation="Horizontal">
+                <avalonia:MaterialIcon Kind="Cog" Width="24" Height="24"/>
+                <TextBlock Text="Настройки"/>
               </StackPanel>
             </Button>
           </StackPanel>
@@ -55,7 +65,7 @@
       <controls:ColorZone VerticalAlignment="Top"
                           HorizontalAlignment="Stretch"
                           Height="56"
-                          Mode="PrimaryMid"
+                          Mode="PrimaryDark"
                           ZIndex="2">
         <Grid Margin="16">
           <Grid.ColumnDefinitions>

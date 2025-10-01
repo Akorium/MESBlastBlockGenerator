@@ -16,8 +16,8 @@ namespace MESBlastBlockGenerator.ViewModels
         private static readonly IXmlSerializationService _serializationService = new XmlSerializationService();
         private static readonly ICoordinateCalculatorService _coordinateCalculatorService = new CoordinateCalculatorService();
         private static readonly IXmlGenerationService _xmlGenerationService = new XmlGenerationService(_serializationService, _coordinateCalculatorService);
-        private static readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
-        private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService, _appSettings.SoapClient.EndpointUrl);
+        private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
+        private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService);
         private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
         [ObservableProperty]
         private UserControl _currentView = new MainView();
@@ -36,7 +36,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToMESGenerator()
         {
-            var mesGeneratorViewModel = new MESGeneratorViewModel(_xmlGenerationService, _soapClientService, _inputParameters);
+            var mesGeneratorViewModel = new MESGeneratorViewModel(_xmlGenerationService, _soapClientService, _inputParameters, _appSettings);
             var mesGeneratorView = new MESGeneratorView { DataContext = mesGeneratorViewModel };
 
             CurrentView = mesGeneratorView;
@@ -49,6 +49,15 @@ namespace MESBlastBlockGenerator.ViewModels
             var geomixGeneratorView = new GeomixGeneratorView { DataContext = geomixGeneratorViewModel };
 
             CurrentView = geomixGeneratorView;
+            IsSidePanelOpen = false;
+        }
+        [RelayCommand]
+        private void NavigateToSettings()
+        {
+            var settingsViewModel = new SettingsViewModel(_appSettings);
+            var settingsView= new SettingsView { DataContext = settingsViewModel };
+
+            CurrentView = settingsView;
             IsSidePanelOpen = false;
         }
         private static string GetTitle()

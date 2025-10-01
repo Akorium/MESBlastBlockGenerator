@@ -17,10 +17,10 @@ namespace MESBlastBlockGenerator.Models.MESBlastProject
         public string HoleTypeCode { get; set; } = "Explosive";
 
         [XmlAttribute("hole_material")]
-        public string HoleMaterial { get; set; } = "Взрывные скважины ВСДП";
+        public string HoleMaterial { get; set; } = "";
 
         [XmlAttribute("hole_material_code")]
-        public string HoleMaterialCode { get; set; } = "1078066";
+        public string HoleMaterialCode { get; set; } = "";
 
         [XmlAttribute("pit_code")]
         public required string PitCode { get; set; }

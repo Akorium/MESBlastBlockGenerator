@@ -6,6 +6,6 @@ namespace MESBlastBlockGenerator.Services.Interfaces
 {
     public interface ISoapClientService
     {
-        Task<bool> SendXmlAsync(string xmlContent);
+        Task<bool> SendXmlAsync(string xmlContent, string endpointUrl);
     }
 }

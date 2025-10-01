@@ -1,0 +1,36 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="MESBlastBlockGenerator.SettingsView">
+
+  <UserControl.Styles>
+    <Style Selector="TextBox.input">
+      <Setter Property="Width" Value="200"/>
+      <Setter Property="Theme" Value="{StaticResource FilledTextBox}"/>
+    </Style>
+    <Style Selector="Grid.row">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="Height" Value="65"/>
+    </Style>
+    <Style Selector="Label.label">
+      <Setter Property="VerticalAlignment" Value="Center"/>
+      <Setter Property="HorizontalAlignment" Value="Center"/>
+      <Setter Property="FontSize" Value="12"/>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="25">
+    <TextBlock Text="Настройки" FontSize="18" Grid.Row="0" HorizontalAlignment="Center"/>
+    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
+      <StackPanel Grid.Column="0">
+        <Label Content="Адрес подключения к CoreService" Classes="label"/>
+        <TextBox x:Name="EndpointUrlTextBox" Classes="input" Text="{Binding EndpointUrl, Mode=TwoWay}"/>
+      </StackPanel>
+    </Grid>
+    <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
+      <Button x:Name="SaveButton" Content="Cохранить" Classes="dark" Command="{Binding SaveSettingsCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
+    </StackPanel>
+  </Grid>
+</UserControl>

@@ -1,4 +1,5 @@
-﻿using MESBlastBlockGenerator.Models;
+﻿using MESBlastBlockGenerator.Enums;
+using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
 using MESBlastBlockGenerator.Models.GeomixBlastProject;
 using MESBlastBlockGenerator.Models.MESBlastProject;
@@ -182,6 +183,22 @@ namespace MESBlastBlockGenerator.Services
                     Value = inputs.StemmingLength.ToString(CultureInfo.InvariantCulture)
                 }
             };
+
+            switch (inputs.HoleMaterialType)
+            {
+                case HoleMaterialType.Руда:
+                    hole.HoleItem.HoleMaterial = "Скважины руды";
+                    hole.HoleItem.HoleMaterialCode = "1028255";
+                    break;
+                case HoleMaterialType.Вскрыша:
+                    hole.HoleItem.HoleMaterial = "Скважины вскрыши";
+                    hole.HoleItem.HoleMaterialCode = "1028251";
+                    break;
+                default:
+                    hole.HoleItem.HoleMaterial = "Взрывные скважины ВСДП";
+                    hole.HoleItem.HoleMaterialCode = "1078066";
+                    break;
+            }
 
             if (inputs.IsDrilling)
             {

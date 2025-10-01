@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Styles.Controls;
 using Material.Styles.Models;
+using MESBlastBlockGenerator.Enums;
 using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.Settings;
@@ -17,12 +18,13 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters) : ObservableValidator
+    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters, AppSettings appSettings) : ObservableValidator
     {
         private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
         private readonly ISoapClientService _soapClientService = soapClientService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly InputParameters _inputParameters = inputParameters;
+        private readonly AppSettings _appSettings = appSettings;
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
@@ -120,11 +122,16 @@ namespace MESBlastBlockGenerator.ViewModels
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
+        private HoleMaterialType _holeMaterialType = inputParameters.HoleMaterialType;
+        [ObservableProperty]
         private TextDocument _generatedXml = new();
         [ObservableProperty]
         private IBrush _statusColor = Brushes.Green;
         [ObservableProperty]
         private bool _isXmlGenerated = false;
+
+        public HoleMaterialType[] HoleMaterialTypeValues { get; } = (HoleMaterialType[])Enum.GetValues(typeof(HoleMaterialType));
+
         #endregion
 
         [RelayCommand]
@@ -195,7 +202,7 @@ namespace MESBlastBlockGenerator.ViewModels
 
             try
             {
-                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text);
+                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text, _appSettings.SoapClient.EndpointUrl);
 
                 if (isSuccess)
                 {
@@ -373,6 +380,10 @@ namespace MESBlastBlockGenerator.ViewModels
             {
                 _inputParameters.CoordinatesDeviation = result;
             }
+        }
+        partial void OnHoleMaterialTypeChanged(HoleMaterialType value)
+        {
+            _inputParameters.HoleMaterialType = value;
         }
         #endregion
     }

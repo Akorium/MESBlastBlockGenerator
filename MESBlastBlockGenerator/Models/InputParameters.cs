@@ -1,4 +1,6 @@
-﻿namespace MESBlastBlockGenerator.Models
+﻿using MESBlastBlockGenerator.Enums;
+
+namespace MESBlastBlockGenerator.Models
 {
     public class InputParameters()
     {
@@ -22,5 +24,6 @@
         public int RealDiameter { get; set; } = 233;
         public bool IsDrilling { get; set; } = false;
         public double CoordinatesDeviation { get; set; } = 0;
+        public HoleMaterialType HoleMaterialType  { get; set; } = HoleMaterialType.ВСДП;
     }
 }

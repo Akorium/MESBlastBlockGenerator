@@ -54,6 +54,19 @@ namespace MESBlastBlockGenerator.Helpers
             }
         }
 
+        public static void SaveAppSettings(AppSettings settings)
+        {
+            try
+            {
+                _serializationService.SerializeToFile(settings, _appSettingsPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Ошибка сохранения настроек");
+                throw;
+            }
+        }
+
         public static AppSettings LoadAppSettings()
         {
             try

@@ -9,7 +9,7 @@
     <Application.Styles>
       <FluentTheme />
       <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
-      <themes:MaterialTheme PrimaryColor="Teal" SecondaryColor="Amber"/>
+      <themes:MaterialTheme PrimaryColor="Teal"/>
       <avalonia:MaterialIconStyles />
     </Application.Styles>
 </Application>
