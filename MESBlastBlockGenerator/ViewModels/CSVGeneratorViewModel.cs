@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class GeomixGeneratorViewModel(IGenerationService xmlGenerationService, InputParameters inputParameters) : ObservableValidator
+    public partial class CSVGeneratorViewModel(IGenerationService xmlGenerationService, InputParameters inputParameters) : ObservableValidator
     {
         private readonly IGenerationService _xmlGenerationService = xmlGenerationService;
         private readonly InputParameters _inputParameters = inputParameters;
@@ -95,17 +95,19 @@ namespace MESBlastBlockGenerator.ViewModels
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
         [ObservableProperty]
-        private TextDocument _generatedXml = new();
+        private TextDocument _generatedCsv = new();
+        [ObservableProperty]
+        private TextDocument _generatedBlockPoints = new();
         [ObservableProperty]
         private IBrush _statusColor = Brushes.Green;
         [ObservableProperty]
-        private bool _isXmlGenerated = false;
+        private bool _isCsvGenerated = false;
         #endregion
 
         [RelayCommand]
-        private void GenerateXml()
+        private void GenerateCsv()
         {
-            _logger.Info("Инициализирована генерация XML");
+            _logger.Info("Инициализирована генерация CSV");
             ClearStatus();
 
             try
@@ -118,17 +120,17 @@ namespace MESBlastBlockGenerator.ViewModels
                     return;
                 }
 
-                _logger.Debug($"Попытка генерации XML с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
+                _logger.Debug($"Попытка генерации CSV с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
                     $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
                     $"mainChargeMass = {_inputParameters.MainChargeMass}" +
-                    $"designDepth = {_inputParameters.DesignDepth}, realDepth = {_inputParameters.RealDepth}, {(_inputParameters.ChargeType != Enums.ChargeType.Одиночный ? $", secondaryChargeMass = {_inputParameters.SecondaryChargeMass}, " : "")} " +
-                    $"designDiameter = {_inputParameters.DesignDiameter}, realDiameter = {_inputParameters.RealDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
-                string xmlContent = _xmlGenerationService.GenerateGeomixMassExplosionProject(_inputParameters);
+                    $"designDepth = {_inputParameters.DesignDepth}, designDiameter = {_inputParameters.DesignDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
+                (string blastHoles, string blastBlockPoints) = _xmlGenerationService.GenerateBlastProjectCsv(_inputParameters);
 
                 SettingsManager.SaveUserInputs(_inputParameters);
-                GeneratedXml = new TextDocument(xmlContent);
-                ShowMessage("XML успешно сгенерирован!");
-                IsXmlGenerated = true;
+                GeneratedCsv = new TextDocument(blastHoles);
+                GeneratedBlockPoints = new TextDocument(blastBlockPoints);
+                ShowMessage("CSV успешно сгенерирован!");
+                IsCsvGenerated = true;
             }
             catch (Exception ex)
             {
@@ -149,8 +151,8 @@ namespace MESBlastBlockGenerator.ViewModels
 
                 if (window?.Clipboard != null)
                 {
-                    await window.Clipboard.SetTextAsync(GeneratedXml.Text);
-                    ShowMessage("XML успешно скопирован в буфер обмена!");
+                    await window.Clipboard.SetTextAsync(GeneratedCsv.Text);
+                    ShowMessage("CSV успешно скопирован в буфер обмена!");
                 }
                 else
                 {
@@ -163,11 +165,11 @@ namespace MESBlastBlockGenerator.ViewModels
             }
         }
         [RelayCommand]
-        private async Task SaveXmlToFileAsync()
+        private async Task SaveCsvToFileAsync()
         {
             try
             {
-                _logger.Info("Инициализировано сохранение XML в файл");
+                _logger.Info("Инициализировано сохранение CSV в файл");
 
                 var mainWindow = Avalonia.Application.Current.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
                 var window = mainWindow?.MainWindow;
@@ -178,33 +180,41 @@ namespace MESBlastBlockGenerator.ViewModels
                     return;
                 }
 
-                var file = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                var blastHolesFile = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
                 {
-                    Title = "Сохранить XML файл",
+                    Title = "Сохранить CSV файл",
                     FileTypeChoices =
                     [
-                        new Avalonia.Platform.Storage.FilePickerFileType("XML файлы")
+                        new Avalonia.Platform.Storage.FilePickerFileType("CSV файлы")
                         {
-                            Patterns = ["*.xml"],
-                            MimeTypes = ["application/xml", "text/xml"]
+                            Patterns = ["*.csv"],
+                            MimeTypes = ["application/csv", "text/csv"]
                         },
                         new Avalonia.Platform.Storage.FilePickerFileType("Все файлы")
                         {
                             Patterns = ["*"]
                         }
                     ],
-                    SuggestedFileName = $"{_inputParameters.PitName}{_inputParameters.Level}-{_inputParameters.BlockNumber}.xml"
+                    SuggestedFileName = $"{_inputParameters.PitName}{_inputParameters.Level}-{_inputParameters.BlockNumber}.csv"
                 });
 
-                if (file != null)
+                if (blastHolesFile != null)
                 {
-                    using var stream = await file.OpenWriteAsync();
+                    using var stream = await blastHolesFile.OpenWriteAsync();
                     using var writer = new StreamWriter(stream);
-                    await writer.WriteAsync(GeneratedXml.Text);
+                    await writer.WriteAsync(GeneratedCsv.Text);
                     await writer.FlushAsync();
 
-                    ShowMessage($"XML успешно сохранен в файл: {file.Path}");
-                    _logger.Info($"XML файл сохранен: {file.Path}");
+                    var blastHolesFilePath = blastHolesFile.Path.LocalPath;
+                    var directory = Path.GetDirectoryName(blastHolesFile.Path.LocalPath);
+                    var fileNameWithoutExtension = Path.GetFileNameWithoutExtension(blastHolesFile.Path.LocalPath);
+                    var pointsFilePath = Path.Combine(directory, $"{fileNameWithoutExtension}_Points.csv");
+                    await File.WriteAllTextAsync(pointsFilePath, GeneratedBlockPoints.Text);
+
+                    ShowMessage($"CSV успешно сохранен в файл: {blastHolesFilePath}");
+                    _logger.Info($"CSV файл сохранен: {blastHolesFilePath}");
+
+
                 }
                 else
                 {
@@ -214,7 +224,7 @@ namespace MESBlastBlockGenerator.ViewModels
             catch (Exception ex)
             {
                 ShowMessage($"Ошибка сохранения файла: {ex.Message}", true);
-                _logger.Error(ex, "Ошибка сохранения XML файла");
+                _logger.Error(ex, "Ошибка сохранения CSV файла");
             }
         }
 

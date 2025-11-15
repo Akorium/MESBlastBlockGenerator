@@ -50,8 +50,12 @@
         <Label Content="Проектный диаметр скважин, мм" Classes="label"/>
         <TextBox x:Name="DesignDiameterTextBox" Classes="filled dense" Text="{Binding DesignDiameter, Mode=TwoWay}"/>
       </StackPanel>
-      <CheckBox Grid.Column="4" x:Name="DispersedChargeCheckBox" IsChecked="{Binding DispersedCharge, Mode=TwoWay}"
-                Content="Рассредоточенный заряд" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+      <StackPanel Grid.Column="4">
+        <Label Content="Тип заряда" Classes="label"/>
+        <ComboBox ItemsSource="{Binding ChargeTypeValues}"
+                  Theme="{StaticResource MaterialFilledComboBox}"
+                  SelectedItem="{Binding ChargeType, Mode=TwoWay}"/>
+      </StackPanel>
       <CheckBox Grid.Column="5" x:Name="IsDrillingCheckBox" IsChecked="{Binding IsDrilling, Mode=TwoWay}"
                 Content="Факт бурения" VerticalAlignment="Center" HorizontalAlignment="Center"/>
     </Grid>
@@ -98,7 +102,7 @@
         <Label Content="Длина забойки, м" Classes="label"/>
         <TextBox x:Name="StemmingLengthTextBox" Classes="filled dense" Text="{Binding StemmingLength, Mode=TwoWay}"/>
       </StackPanel>
-      <StackPanel Grid.Column="4" IsVisible="{Binding #DispersedChargeCheckBox.IsChecked}">
+      <StackPanel Grid.Column="4" IsVisible="{Binding IsNotSingleChargeSelected}">
         <Label Content="Масса второго заряда, кг" Classes="label"/>
         <TextBox x:Name="SecondaryChargeMassTextBox" Classes="filled dense" Text="{Binding SecondaryChargeMass, Mode=TwoWay}"/>
       </StackPanel>
@@ -117,6 +121,10 @@
         <ComboBox ItemsSource="{Binding HoleMaterialTypeValues}"
                   Theme="{StaticResource MaterialFilledComboBox}"
                   SelectedItem="{Binding HoleMaterialType, Mode=TwoWay}"/>
+      </StackPanel>
+      <StackPanel Grid.Column="4" IsVisible="{Binding IsMixedChargeSelected}">
+        <Label Content="Количество скважин" Classes="label"/>
+        <TextBox x:Name="HolesCountWithDispersedChargeTextBox" Classes="filled dense" Text="{Binding HolesCountWithDispersedCharge, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
         <Label Content="Отклонение координат, м" Classes="label"/>

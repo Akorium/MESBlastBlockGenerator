@@ -18,9 +18,9 @@ using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class MESGeneratorViewModel(IXmlGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters, AppSettings appSettings) : ObservableValidator
+    public partial class MESGeneratorViewModel(IGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters, AppSettings appSettings) : ObservableValidator
     {
-        private readonly IXmlGenerationService _xmlGenerationService = xmlGenerationService;
+        private readonly IGenerationService _xmlGenerationService = xmlGenerationService;
         private readonly ISoapClientService _soapClientService = soapClientService;
         private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
         private readonly InputParameters _inputParameters = inputParameters;
@@ -78,7 +78,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
         private string _blockNumber = inputParameters.BlockNumber.ToString(_culture);
         [ObservableProperty]
-        private bool _dispersedCharge = inputParameters.DispersedCharge;
+        private ChargeType _chargeType = inputParameters.ChargeType;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
@@ -89,6 +89,10 @@ namespace MESBlastBlockGenerator.ViewModels
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _secondaryChargeMass = inputParameters.SecondaryChargeMass.ToString(_culture);
+        [ObservableProperty]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
+        private string _holesCountWithDispersedCharge = inputParameters.HolesCountWithDispersedCharge.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
@@ -130,8 +134,12 @@ namespace MESBlastBlockGenerator.ViewModels
         [ObservableProperty]
         private bool _isXmlGenerated = false;
 
-        public HoleMaterialType[] HoleMaterialTypeValues { get; } = (HoleMaterialType[])Enum.GetValues(typeof(HoleMaterialType));
+        
 
+        public HoleMaterialType[] HoleMaterialTypeValues { get; } = (HoleMaterialType[])Enum.GetValues(typeof(HoleMaterialType));
+        public ChargeType[] ChargeTypeValues { get; } = (ChargeType[])Enum.GetValues(typeof(ChargeType));
+        public bool IsNotSingleChargeSelected => ChargeType != ChargeType.Одиночный;
+        public bool IsMixedChargeSelected => ChargeType == ChargeType.Смешанный;
         #endregion
 
         [RelayCommand]
@@ -331,6 +339,13 @@ namespace MESBlastBlockGenerator.ViewModels
                 _inputParameters.SecondaryChargeMass = result;
             }
         }
+        partial void OnHolesCountWithDispersedChargeChanged(string value)
+        {
+            if (int.TryParse(value, out int result) && result > 0)
+            {
+                _inputParameters.HolesCountWithDispersedCharge = result;
+            }
+        }
         partial void OnDesignDepthChanged(string value)
         {
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
@@ -345,10 +360,13 @@ namespace MESBlastBlockGenerator.ViewModels
                 _inputParameters.RealDepth = result;
             }
         }
-        partial void OnDispersedChargeChanged(bool value)
+        partial void OnChargeTypeChanged(ChargeType value)
         {
-            _inputParameters.DispersedCharge = value;
+            _inputParameters.ChargeType = value;
+            OnPropertyChanged(nameof(IsNotSingleChargeSelected));
+            OnPropertyChanged(nameof(IsMixedChargeSelected));
         }
+
         partial void OnStemmingLengthChanged(string value)
         {
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)

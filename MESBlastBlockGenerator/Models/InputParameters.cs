@@ -16,7 +16,8 @@ namespace MESBlastBlockGenerator.Models
         public int BlockNumber { get; set; } = 101;
         public double DesignDepth { get; set; } = 9.5;
         public double RealDepth { get; set; } = 7;
-        public bool DispersedCharge { get; set; } = false;
+        public ChargeType ChargeType { get; set; } = ChargeType.Одиночный;
+        public int HolesCountWithDispersedCharge { get; set; } = 1;
         public double MainChargeMass { get; set; } = 500;
         public double SecondaryChargeMass { get; set; } = 600;
         public double StemmingLength { get; set; } = 4.59;

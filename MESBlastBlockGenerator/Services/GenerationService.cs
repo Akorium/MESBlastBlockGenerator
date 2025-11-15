@@ -1,6 +1,9 @@
-﻿using MESBlastBlockGenerator.Enums;
+﻿using CsvHelper;
+using CsvHelper.Configuration;
+using MESBlastBlockGenerator.Enums;
 using MESBlastBlockGenerator.Models;
 using MESBlastBlockGenerator.Models.BlastProject;
+using MESBlastBlockGenerator.Models.CSVBlastProject;
 using MESBlastBlockGenerator.Models.GeomixBlastProject;
 using MESBlastBlockGenerator.Models.MESBlastProject;
 using MESBlastBlockGenerator.Models.SOAP;
@@ -10,6 +13,8 @@ using NLog;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text;
 using System.Xml;
 using System.Xml.Serialization;
 
@@ -18,7 +23,7 @@ namespace MESBlastBlockGenerator.Services
     /// <summary>
     /// This service is responsible for generating XML data for MES or Geomix mass explosion projects.
     /// </summary>
-    public class XmlGenerationService(IXmlSerializationService serializationService, ICoordinateCalculatorService coordinateCalculator) : IXmlGenerationService
+    public class GenerationService(IXmlSerializationService serializationService, ICoordinateCalculatorService coordinateCalculator) : IGenerationService
     {
         private readonly ICoordinateCalculatorService _coordinateCalculator = coordinateCalculator;
         private readonly IXmlSerializationService _serializationService = serializationService;
@@ -29,6 +34,7 @@ namespace MESBlastBlockGenerator.Services
                 new XmlQualifiedName("x", "http://schemas.xmlsoap.org/soap/envelope/"),
                 new XmlQualifiedName("tem", "http://tempuri.org/")
             ]);
+        private static readonly CsvConfiguration _csvConfiguration = new(CultureInfo.InvariantCulture) { Delimiter = ";" };
         /// <summary>
         /// Generates MES mass explosion project in XML format.
         /// </summary>
@@ -62,6 +68,22 @@ namespace MESBlastBlockGenerator.Services
         }
 
         /// <summary>
+        /// Generates CSV data in the specified format for blast project using CsvHelper and GenerateGridObjects.
+        /// </summary>
+        /// <param name="inputs">Parameters entered by the user to create a mass explosion project.</param>
+        /// <returns>CSV formatted string with blast project data.</returns>
+        public (string blastHoles, string blastBlockPoints) GenerateBlastProjectCsv(InputParameters inputs)
+        {
+            _logger.Debug("Generating CSV mass explosion project...");
+            var blastHoles = GenerateGridObjects(inputs, CreateBlastHoleRecord);
+            _logger.Debug("СSV mass explosion project generated. Generating points for mass explosion project...");
+            var (cosAngle, sinAngle) = _coordinateCalculator.PrecalculateRotation(inputs.RotationAngle);
+            var blastBlockPoints = GenerateBlastBlockPoints(inputs, cosAngle, sinAngle);
+            _logger.Debug("Points for mass explosion project generated. Serializing...");
+            return (SerializeCSV(blastHoles, new BlastHoleRecordMap()), SerializeCSV(blastBlockPoints, new BlastBlockPointRecordMap()));
+        }
+
+        /// <summary>
         /// Generates a list of objects for a grid based on the given input parameters.
         /// </summary>
         /// <typeparam name="T">The type of the objects to generate.</typeparam>
@@ -84,6 +106,69 @@ namespace MESBlastBlockGenerator.Services
             }
             return objects;
         }
+        #region CSV Blast Project Generation
+        /// <summary>
+        /// Creates a BlastHoleRecord for the specified row, column, and inputs.
+        /// </summary>
+        /// <param name="row">The row number.</param>
+        /// <param name="col">The column number.</param>
+        /// <param name="inputs">The input parameters.</param>
+        /// <param name="coords">The calculated coordinates.</param>
+        /// <returns>A BlastHoleRecord object.</returns>
+        private static BlastHoleRecord CreateBlastHoleRecord(int row, int col, InputParameters inputs, (double x, double y) coords)
+        {
+            return new BlastHoleRecord
+            {
+                Name = $"{row:D2}{col:D2}",
+                X = coords.x,
+                Y = coords.y,
+                Z = inputs.BaseZ,
+                BlastBlockName = $"{inputs.PitName}{inputs.Level}-{inputs.BlockNumber}",
+                DesignChargeMass = inputs.MainChargeMass,
+                DesignChargeHeight = inputs.DesignDepth - inputs.StemmingLength,
+                Depth = inputs.DesignDepth,
+                Diameter = inputs.DesignDiameter * 0.001,
+                Tamping = inputs.StemmingLength
+            };
+        }
+        private static string SerializeCSV<T>(List<T> records, ClassMap map)
+        {
+            var csv = new StringBuilder();
+            using (var writer = new StringWriter(csv))
+            using (var csvWriter = new CsvWriter(writer, _csvConfiguration))
+            {
+                csvWriter.Context.RegisterClassMap(map);
+                csvWriter.WriteRecords(records);
+            }
+            return csv.ToString();
+        }
+        private List<BlastBlockPointRecord> GenerateBlastBlockPoints(InputParameters inputs, double cosAngle, double sinAngle)
+        {
+            var cornerIndices = new (int row, int col)[]
+            {
+                (0, 0),
+                (0, inputs.MaxCol-1),
+                (inputs.MaxRow-1, inputs.MaxCol-1),
+                (inputs.MaxRow-1, 0)
+            };
+
+            var points = new List<BlastBlockPointRecord>(4);
+            int sequence = 0;
+
+            foreach (var (row, col) in cornerIndices)
+            {
+                var (x, y) = _coordinateCalculator.CalculateCoords(inputs, cosAngle, sinAngle, row, col);
+                points.Add(new BlastBlockPointRecord
+                {
+                    BlastBlockName = $"{inputs.PitName}{inputs.Level}-{inputs.BlockNumber}",
+                    Sequence = sequence++,
+                    X = x,
+                    Y = y
+                });
+            }
+            return points;
+        }
+        #endregion
 
         #region MES Mass Explosion Project Generation
         /// <summary>
@@ -152,7 +237,15 @@ namespace MESBlastBlockGenerator.Services
             List<Models.MESBlastProject.Material> materials)
         {
             var (levelCode, blockName, blockCode) = GenerateBlockCodes(inputs);
-
+            /*
+            if (inputs.ChargeType == ChargeType.Рассредоточенный)
+            {
+                materials.Amounts.Add(new Amount
+                {
+                    Value = inputs.SecondaryChargeMass.ToString(CultureInfo.InvariantCulture),
+                    Priority = "2"
+                });
+            }*/
             var hole = new Hole
             {
                 HoleItem = new()
@@ -241,7 +334,7 @@ namespace MESBlastBlockGenerator.Services
                 ]
             };
 
-            if (inputs.DispersedCharge)
+            if (inputs.ChargeType == ChargeType.Рассредоточенный)
             {
                 _logger.Debug($"Main explosive for holes in MES mass explosion project generated. Generating secondary explosive...");
                 explosive.Amounts.Add(new Amount
@@ -330,6 +423,7 @@ namespace MESBlastBlockGenerator.Services
         private static Well GenerateGeomixWell(int row, int col, InputParameters inputs,
             (double x, double y) coords, List<Charge> charge)
         {
+
             return new Well
             {
                 WellID = $"{row:D2}{col:D2}",
@@ -338,7 +432,7 @@ namespace MESBlastBlockGenerator.Services
                 X = coords.x.ToString(CultureInfo.InvariantCulture),
                 Y = coords.y.ToString(CultureInfo.InvariantCulture),
                 Z = inputs.BaseZ.ToString(CultureInfo.InvariantCulture),
-                DM = inputs.DesignDiameter.ToString(CultureInfo.InvariantCulture),
+                DM = (inputs.DesignDiameter * 0.001).ToString(CultureInfo.InvariantCulture),
                 Charges = new Charges { ChargeList = charge }
             };
         }
@@ -372,9 +466,9 @@ namespace MESBlastBlockGenerator.Services
             var cornerIndices = new (int row, int col)[]
             {
                 (0, 0),
-                (0, inputs.MaxCol),
-                (inputs.MaxRow, 0),
-                (inputs.MaxRow, inputs.MaxCol)
+                (0, inputs.MaxCol-1),
+                (inputs.MaxRow - 1, inputs.MaxCol-1),
+                (inputs.MaxRow-1, 0)
             };
 
             var points = new List<Point>(4);

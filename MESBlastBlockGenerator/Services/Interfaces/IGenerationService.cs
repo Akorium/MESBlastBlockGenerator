@@ -1,11 +1,11 @@
 ﻿using MESBlastBlockGenerator.Models;
-using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.Services.Interfaces
 {
-    public interface IXmlGenerationService
+    public interface IGenerationService
     {
         string GenerateMESMassExplosionProject(InputParameters inputs);
         string GenerateGeomixMassExplosionProject(InputParameters inputs);
+        (string blastHoles, string blastBlockPoints) GenerateBlastProjectCsv(InputParameters inputs);
     }
 }

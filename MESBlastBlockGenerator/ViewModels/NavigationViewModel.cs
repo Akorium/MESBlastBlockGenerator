@@ -15,7 +15,7 @@ namespace MESBlastBlockGenerator.ViewModels
     {
         private static readonly IXmlSerializationService _serializationService = new XmlSerializationService();
         private static readonly ICoordinateCalculatorService _coordinateCalculatorService = new CoordinateCalculatorService();
-        private static readonly IXmlGenerationService _xmlGenerationService = new XmlGenerationService(_serializationService, _coordinateCalculatorService);
+        private static readonly IGenerationService _xmlGenerationService = new GenerationService(_serializationService, _coordinateCalculatorService);
         private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
         private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService);
         private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
@@ -58,6 +58,15 @@ namespace MESBlastBlockGenerator.ViewModels
             var settingsView= new SettingsView { DataContext = settingsViewModel };
 
             CurrentView = settingsView;
+            IsSidePanelOpen = false;
+        }
+        [RelayCommand]
+        private void NavigateToCSVGenerator()
+        {
+            var csvGeneratorViewModel = new CSVGeneratorViewModel(_xmlGenerationService, _inputParameters);
+            var csvGeneratorView = new CSVGeneratorView { DataContext = csvGeneratorViewModel };
+
+            CurrentView = csvGeneratorView;
             IsSidePanelOpen = false;
         }
         private static string GetTitle()

@@ -14,7 +14,7 @@ namespace MESBlastBlockGenerator.Models.GeomixBlastProject
         public string ExplosiveType { get; set; } = "Гранулит М";
 
         [XmlAttribute("B")]
-        public string BoosterType { get; set; } = "Патронит М-60";
+        public string BoosterType { get; set; } = "Тип ВВ 1";
 
         [XmlAttribute("B1")]
         public string BoosterType2 { get; set; } = "Патронит М-60";
