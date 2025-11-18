@@ -1,8 +1,9 @@
-<UserControl xmlns="https://github.com/avaloniaui"
+﻿<UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:Material.Styles.Controls;assembly=Material.Styles"
+             xmlns:wpf="clr-namespace:Material.Styles.Assists;assembly=Material.Styles"
              xmlns:AvaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
-             x:Class="MESBlastBlockGenerator.Views.MESGeneratorView">
+             x:Class="MESBlastBlockGenerator.Views.MicromineGeneratorView">
 
   <UserControl.Styles>
     <Style Selector="Border.texteditor">
@@ -32,14 +33,14 @@
   </UserControl.Styles>
 
   <Grid Margin="15" RowDefinitions="Auto,Auto,Auto,Auto,Auto,*,Auto" RowSpacing="25">
-    <TextBlock Text="Генератор ПМВ для MES" FontSize="18" Grid.Row="0" HorizontalAlignment="Center"/>
-    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
+    <TextBlock Text="Генератор ПМВ Micromine" FontSize="18" Grid.Row="0" HorizontalAlignment="Center"/>
+    <Grid Grid.Row="1" ColumnDefinitions="*,*,*,*,*" Classes="row">
       <StackPanel Grid.Column="0">
         <Label Content="Количество рядов скважин" Classes="label"/>
         <TextBox x:Name="MaxRowTextBox" Classes="filled dense" Text="{Binding MaxRow, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="1">
-        <Label Content="X первой скважины, м" Classes="label"/>
+        <Label Content="Координата X первой скважины, м" Classes="label"/>
         <TextBox x:Name="BaseXTextBox" Classes="filled dense" Text="{Binding BaseX, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
@@ -51,21 +52,17 @@
         <TextBox x:Name="DesignDiameterTextBox" Classes="filled dense" Text="{Binding DesignDiameter, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="4">
-        <Label Content="Тип заряда" Classes="label"/>
-        <ComboBox ItemsSource="{Binding ChargeTypeValues}"
-                  Theme="{StaticResource MaterialFilledComboBox}"
-                  SelectedItem="{Binding ChargeType, Mode=TwoWay}"/>
+        <Label Content="Наименование ВВ" Classes="label"/>
+        <TextBox x:Name="ExplosiveNameTextBox" Classes="filled dense" Text="{Binding ExplosiveName, Mode=TwoWay}"/>
       </StackPanel>
-      <CheckBox Grid.Column="5" x:Name="IsDrillingCheckBox" IsChecked="{Binding IsDrilling, Mode=TwoWay}"
-                Content="Факт бурения" VerticalAlignment="Center" HorizontalAlignment="Center"/>
     </Grid>
-    <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
+    <Grid Grid.Row="2" ColumnDefinitions="*,*,*,*,*" Classes="row">
       <StackPanel Grid.Column="0">
         <Label Content="Количество столбцов скважин" Classes="label"/>
         <TextBox x:Name="MaxColTextBox" Classes="filled dense" Text="{Binding MaxCol, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="1">
-        <Label Content="Y первой скважины, м" Classes="label"/>
+        <Label Content="Координата Y первой скважины, м" Classes="label"/>
         <TextBox x:Name="BaseYTextBox" Classes="filled dense" Text="{Binding BaseY, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
@@ -77,21 +74,17 @@
         <TextBox x:Name="DesignDepthTextBox" Classes="filled dense" Text="{Binding DesignDepth, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="4">
-        <Label Content="Масса основного заряда, кг" Classes="label"/>
-        <TextBox x:Name="MainChargeMassTextBox" Classes="filled dense" Text="{Binding MainChargeMass, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Фактический диаметр скважин, мм" Classes="label"/>
-        <TextBox x:Name="RealDiameterTextBox" Classes="filled dense" Text="{Binding RealDiameter, Mode=TwoWay}"/>
+        <Label Content="Плотность ВВ" Classes="label"/>
+        <TextBox x:Name="ExplosiveDensityTextBox" Classes="filled dense" Text="{Binding ExplosiveDensity, Mode=TwoWay}"/>
       </StackPanel>
     </Grid>
-    <Grid Grid.Row="3" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
+    <Grid Grid.Row="3" ColumnDefinitions="*,*,*,*,*" Classes="row">
       <StackPanel Grid.Column="0">
         <Label Content="Расстояние между скважинами, м" Classes="label"/>
         <TextBox x:Name="DistanceTextBox" Classes="filled dense" Text="{Binding Distance, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="1">
-        <Label Content="Z скважин, м" Classes="label"/>
+        <Label Content="Координата Z скважин, м" Classes="label"/>
         <TextBox x:Name="BaseZTextBox" Classes="filled dense" Text="{Binding BaseZ, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="2">
@@ -102,38 +95,38 @@
         <Label Content="Длина забойки, м" Classes="label"/>
         <TextBox x:Name="StemmingLengthTextBox" Classes="filled dense" Text="{Binding StemmingLength, Mode=TwoWay}"/>
       </StackPanel>
-      <StackPanel Grid.Column="4" IsVisible="{Binding IsNotSingleChargeSelected}">
-        <Label Content="Масса второго заряда, кг" Classes="label"/>
-        <TextBox x:Name="SecondaryChargeMassTextBox" Classes="filled dense" Text="{Binding SecondaryChargeMass, Mode=TwoWay}"/>
-      </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Фактическая глубина скважин, м" Classes="label"/>
-        <TextBox x:Name="RealDepthTextBox" Classes="filled dense" Text="{Binding RealDepth, Mode=TwoWay}"/>
+      <StackPanel Grid.Column="4">
+        <Label Content="Масса основного заряда, кг" Classes="label"/>
+        <TextBox x:Name="MainChargeMassTextBox" Classes="filled dense" Text="{Binding MainChargeMass, Mode=TwoWay}"/>
       </StackPanel>
     </Grid>
-    <Grid Grid.Row="4" ColumnDefinitions="*,*,*,*,*,*" Classes="row">
+    <Grid Grid.Row="4" ColumnDefinitions="*,*,*,*,*" Classes="row">
       <StackPanel Grid.Column="0">
         <Label Content="Угол поворота сетки, °" Classes="label"/>
         <TextBox x:Name="RotationAngleTextBox" Classes="filled dense" Text="{Binding RotationAngle, Mode=TwoWay}"/>
       </StackPanel>
       <StackPanel Grid.Column="3">
-        <Label Content="Материал скважины" Classes="label"/>
-        <ComboBox ItemsSource="{Binding HoleMaterialTypeValues}"
+        <Label Content="Тип заряда" Classes="label"/>
+        <ComboBox ItemsSource="{Binding ChargeTypeValues}"
                   Theme="{StaticResource MaterialFilledComboBox}"
-                  SelectedItem="{Binding HoleMaterialType, Mode=TwoWay}"/>
+                  SelectedItem="{Binding ChargeType, Mode=TwoWay}"/>
       </StackPanel>
-      <StackPanel Grid.Column="5" IsVisible="{Binding #IsDrillingCheckBox.IsChecked}">
-        <Label Content="Отклонение координат, м" Classes="label"/>
-        <TextBox x:Name="CoordinatesDeviationTextBox" Classes="filled dense" Text="{Binding CoordinatesDeviation, Mode=TwoWay}"/>
+      <StackPanel Grid.Column="4" IsVisible="{Binding IsNotSingleChargeSelected}">
+        <Label Content="Масса второго заряда, кг" Classes="label"/>
+        <TextBox x:Name="SecondaryChargeMassTextBox" Classes="filled dense" Text="{Binding SecondaryChargeMass, Mode=TwoWay}"/>
       </StackPanel>
     </Grid>
-    <Border Grid.Row="5" Classes="texteditor">
-      <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output" Document="{Binding GeneratedXml}"/>
-    </Border>
+    <Grid Grid.Row="5" ColumnDefinitions="*,*">
+		<Border Classes="texteditor">
+          <AvaloniaEdit:TextEditor x:Name="XmlOutput" Classes="xml-output" Document="{Binding GeneratedCollar}"/>
+        </Border>
+        <Border Classes="texteditor" Grid.Column="1">
+          <AvaloniaEdit:TextEditor x:Name="IntervalOutput" Classes="xml-output" Document="{Binding GeneratedIntervals}"/>
+        </Border>
+    </Grid>
     <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="10">
-      <Button x:Name="CopyButton" Content="Копировать в буфер обмена" Classes="dark" Command="{Binding CopyToClipboardCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
-      <Button x:Name="SendButton" Content="Отправить в CS" Classes="dark" Command="{Binding SendXmlCommand}" IsEnabled="{Binding IsXmlGenerated}"/>
-      <Button x:Name="GenerateButton" Content="Сгенерировать XML" Classes="dark" Command="{Binding GenerateXmlCommand}" />
+      <Button x:Name="SaveButton" Content="Cохранить в файл" Classes="dark" Command="{Binding SaveCsvToFileCommand}" IsEnabled="{Binding IsCsvGenerated}"/>
+      <Button x:Name="GenerateButton" Content="Сгенерировать CSV" Classes="dark" Command="{Binding GenerateCsvCommand}"/>
     </StackPanel>
     <controls:SnackbarHost Grid.Row="0" Grid.RowSpan="7" x:Name="StatusSnackbar" HostName="{Binding $self.Name}" Foreground="{Binding StatusColor}"/>
   </Grid>

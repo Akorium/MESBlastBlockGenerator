@@ -15,7 +15,7 @@ namespace MESBlastBlockGenerator.ViewModels
     {
         private static readonly IXmlSerializationService _serializationService = new XmlSerializationService();
         private static readonly ICoordinateCalculatorService _coordinateCalculatorService = new CoordinateCalculatorService();
-        private static readonly IGenerationService _xmlGenerationService = new GenerationService(_serializationService, _coordinateCalculatorService);
+        private static readonly IGenerationService _generationService = new GenerationService(_serializationService, _coordinateCalculatorService);
         private readonly AppSettings _appSettings = SettingsManager.LoadAppSettings();
         private static readonly ISoapClientService _soapClientService = new SoapClientService(_serializationService);
         private static readonly InputParameters _inputParameters = SettingsManager.LoadUserInputs();
@@ -36,7 +36,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToMESGenerator()
         {
-            var mesGeneratorViewModel = new MESGeneratorViewModel(_xmlGenerationService, _soapClientService, _inputParameters, _appSettings);
+            var mesGeneratorViewModel = new MESGeneratorViewModel(_generationService, _soapClientService, _inputParameters, _appSettings);
             var mesGeneratorView = new MESGeneratorView { DataContext = mesGeneratorViewModel };
 
             CurrentView = mesGeneratorView;
@@ -45,7 +45,7 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToGeomixGenerator()
         {
-            var geomixGeneratorViewModel = new GeomixGeneratorViewModel(_xmlGenerationService, _inputParameters);
+            var geomixGeneratorViewModel = new GeomixGeneratorViewModel(_generationService, _inputParameters);
             var geomixGeneratorView = new GeomixGeneratorView { DataContext = geomixGeneratorViewModel };
 
             CurrentView = geomixGeneratorView;
@@ -63,10 +63,19 @@ namespace MESBlastBlockGenerator.ViewModels
         [RelayCommand]
         private void NavigateToCSVGenerator()
         {
-            var csvGeneratorViewModel = new CSVGeneratorViewModel(_xmlGenerationService, _inputParameters);
+            var csvGeneratorViewModel = new CSVGeneratorViewModel(_generationService, _inputParameters);
             var csvGeneratorView = new CSVGeneratorView { DataContext = csvGeneratorViewModel };
 
             CurrentView = csvGeneratorView;
+            IsSidePanelOpen = false;
+        }
+        [RelayCommand]
+        private void NavigateToMicromineGenerator()
+        {
+            var micromineGeneratorViewModel = new MicromineGeneratorViewModel(_generationService, _inputParameters);
+            var micromineGeneratorView = new MicromineGeneratorView { DataContext = micromineGeneratorViewModel };
+
+            CurrentView = micromineGeneratorView;
             IsSidePanelOpen = false;
         }
         private static string GetTitle()

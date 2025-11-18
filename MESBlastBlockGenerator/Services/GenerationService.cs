@@ -6,6 +6,7 @@ using MESBlastBlockGenerator.Models.BlastProject;
 using MESBlastBlockGenerator.Models.CSVBlastProject;
 using MESBlastBlockGenerator.Models.GeomixBlastProject;
 using MESBlastBlockGenerator.Models.MESBlastProject;
+using MESBlastBlockGenerator.Models.MicromineBlastProject;
 using MESBlastBlockGenerator.Models.SOAP;
 using MESBlastBlockGenerator.Models.SOAP.Request;
 using MESBlastBlockGenerator.Services.Interfaces;
@@ -35,6 +36,7 @@ namespace MESBlastBlockGenerator.Services
                 new XmlQualifiedName("tem", "http://tempuri.org/")
             ]);
         private static readonly CsvConfiguration _csvConfiguration = new(CultureInfo.InvariantCulture) { Delimiter = ";" };
+        private static readonly CsvConfiguration _csvConfigurationMicromine = new(CultureInfo.InvariantCulture) { Delimiter = ",", ShouldQuote = context => context.FieldType == typeof(string) };
         /// <summary>
         /// Generates MES mass explosion project in XML format.
         /// </summary>
@@ -80,7 +82,98 @@ namespace MESBlastBlockGenerator.Services
             var (cosAngle, sinAngle) = _coordinateCalculator.PrecalculateRotation(inputs.RotationAngle);
             var blastBlockPoints = GenerateBlastBlockPoints(inputs, cosAngle, sinAngle);
             _logger.Debug("Points for mass explosion project generated. Serializing...");
-            return (SerializeCSV(blastHoles, new BlastHoleRecordMap()), SerializeCSV(blastBlockPoints, new BlastBlockPointRecordMap()));
+            return (SerializeCSV(blastHoles, new BlastHoleRecordMap(), _csvConfiguration), SerializeCSV(blastBlockPoints, new BlastBlockPointRecordMap(), _csvConfiguration));
+        }
+        public (string collar, string interval) GenerateMicromineMassExplosionProject(InputParameters inputs)
+        {
+            _logger.Debug("Generating Micromine mass explosion project...");
+            var collar = GenerateGridObjects(inputs, CreateMicromineCollarRecord);
+            _logger.Debug("Micromine mass explosion project generated. Generating intervals for mass explosion project...");
+            var interval = GenerateInterval(inputs, collar);
+            _logger.Debug("Intervals for mass explosion project generated. Serializing...");
+            return (SerializeCSV(collar, new CollarRecordMap(), _csvConfigurationMicromine), SerializeCSV(interval, new IntervalRecordMap(), _csvConfigurationMicromine));
+
+        }
+
+        private static List<IntervalRecord> GenerateInterval(InputParameters inputs, List<CollarRecord> collar)
+        {
+            var interval = new List<IntervalRecord>();
+            foreach (CollarRecord rec in collar)
+            {
+                interval.Add(new IntervalRecord
+                {
+                    Hole = rec.Hole,
+                    Block = rec.Block,
+                    To = inputs.StemmingLength
+                });
+                if (inputs.ChargeType == ChargeType.Одиночный)
+                {
+                    interval.Add(new IntervalRecord
+                    {
+                        Hole = rec.Hole,
+                        Block = rec.Block,
+                        From = inputs.StemmingLength,
+                        To = rec.Depth,
+                        IntervalType = inputs.ExplosiveName,
+                        ChargeDensity = inputs.ExplosiveDensity,
+                        ExplosiveWeigth = inputs.MainChargeMass
+                    });
+                }
+                else
+                {
+                    double airGapHeight = 2;
+                    double explosiveHeight = rec.Depth - inputs.StemmingLength - airGapHeight;
+                    double firstChargeHeight = explosiveHeight * inputs.MainChargeMass / (inputs.SecondaryChargeMass + inputs.MainChargeMass);
+                                        
+                    interval.Add(new IntervalRecord
+                    {
+                        Hole = rec.Hole,
+                        Block = rec.Block,
+                        From = inputs.StemmingLength,
+                        To = inputs.StemmingLength + firstChargeHeight,
+                        IntervalType = inputs.ExplosiveName,
+                        ChargeDensity = inputs.ExplosiveDensity,
+                        ExplosiveWeigth = inputs.MainChargeMass
+                    });
+                    interval.Add(new IntervalRecord
+                    {
+                        Hole = rec.Hole,
+                        Block = rec.Block,
+                        From = inputs.StemmingLength + firstChargeHeight,
+                        To = inputs.StemmingLength + firstChargeHeight + airGapHeight,
+                        IntervalType = "Воздушный проме�",
+                    });
+                    interval.Add(new IntervalRecord
+                    {
+                        Hole = rec.Hole,
+                        Block = rec.Block,
+                        From = inputs.StemmingLength + firstChargeHeight + airGapHeight,
+                        To = rec.Depth,
+                        IntervalType = inputs.ExplosiveName,
+                        ChargeDensity = inputs.ExplosiveDensity,
+                        ExplosiveWeigth = inputs.SecondaryChargeMass
+                    });
+                }
+            }
+            return interval;
+        }
+        
+
+        private CollarRecord CreateMicromineCollarRecord(int row, int col, InputParameters inputs, (double x, double y) coords)
+        {
+            return new CollarRecord
+            {
+                Hole = $"{row:D2}{col:D2}",
+                Block = $"{inputs.PitName}{inputs.Level}-{inputs.BlockNumber}",
+                East = coords.x,
+                North = coords.y,
+                Rl = inputs.BaseZ,
+                Depth = inputs.DesignDepth,
+                Row = ++row,
+                HoleDiameter = inputs.DesignDiameter,
+                Spacing = inputs.Distance,
+                Burden = inputs.Distance
+            };
         }
 
         /// <summary>
@@ -90,7 +183,7 @@ namespace MESBlastBlockGenerator.Services
         /// <param name="inputs">Parameters entered by the user to create a mass explosion project.</param>
         /// <param name="objectFactory">A function that creates an object for a given row, column, inputs, and coordinates.</param>
         /// <returns>A list of objects generated for the grid.</returns>
-        private List<T> GenerateGridObjects<T>(InputParameters inputs, Func<int, int, InputParameters, (double, double), T> objectFactory)
+        private List<T> GenerateGridObjects<T>(InputParameters inputs, Func<int, int, InputParameters, (double x, double y), T> objectFactory)
         {
             var (cosAngle, sinAngle) = _coordinateCalculator.PrecalculateRotation(inputs.RotationAngle);
             var objects = new List<T>(checked((int)(inputs.MaxCol * inputs.MaxRow)));
@@ -131,11 +224,11 @@ namespace MESBlastBlockGenerator.Services
                 Tamping = inputs.StemmingLength
             };
         }
-        private static string SerializeCSV<T>(List<T> records, ClassMap map)
+        private static string SerializeCSV<T>(List<T> records, ClassMap map, CsvConfiguration csvConfiguration)
         {
             var csv = new StringBuilder();
             using (var writer = new StringWriter(csv))
-            using (var csvWriter = new CsvWriter(writer, _csvConfiguration))
+            using (var csvWriter = new CsvWriter(writer, csvConfiguration))
             {
                 csvWriter.Context.RegisterClassMap(map);
                 csvWriter.WriteRecords(records);

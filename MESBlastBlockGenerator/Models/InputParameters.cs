@@ -26,5 +26,7 @@ namespace MESBlastBlockGenerator.Models
         public bool IsDrilling { get; set; } = false;
         public double CoordinatesDeviation { get; set; } = 0;
         public HoleMaterialType HoleMaterialType  { get; set; } = HoleMaterialType.ВСДП;
+        public string ExplosiveName { get; set; } = "Ургалит";
+        public double ExplosiveDensity { get; set; } = 1.25;
     }
 }

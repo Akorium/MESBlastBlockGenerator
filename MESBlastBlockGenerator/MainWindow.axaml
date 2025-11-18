@@ -57,6 +57,16 @@
               </StackPanel>
             </Button>
             <Button Classes="dark"
+                Command="{Binding NavigateToMicromineGeneratorCommand}"
+                HorizontalContentAlignment="Left"
+                Padding="16,0"
+                Height="32">
+              <StackPanel Orientation="Horizontal">
+                <avalonia:MaterialIcon Kind="Calculator" Width="24" Height="24"/>
+                <TextBlock Text="Генератор ПМВ Micromine"/>
+              </StackPanel>
+            </Button>
+            <Button Classes="dark"
                    Command="{Binding NavigateToSettingsCommand}"
                    HorizontalContentAlignment="Left"
                    Padding="16,0"

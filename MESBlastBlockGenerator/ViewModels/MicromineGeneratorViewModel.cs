@@ -8,23 +8,21 @@ using Material.Styles.Models;
 using MESBlastBlockGenerator.Enums;
 using MESBlastBlockGenerator.Helpers;
 using MESBlastBlockGenerator.Models;
-using MESBlastBlockGenerator.Models.Settings;
 using MESBlastBlockGenerator.Services.Interfaces;
 using NLog;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace MESBlastBlockGenerator.ViewModels
 {
-    public partial class MESGeneratorViewModel(IGenerationService xmlGenerationService, ISoapClientService soapClientService, InputParameters inputParameters, AppSettings appSettings) : ObservableValidator
+    public partial class MicromineGeneratorViewModel(IGenerationService generationService, InputParameters inputParameters) : ObservableValidator
     {
-        private readonly IGenerationService _xmlGenerationService = xmlGenerationService;
-        private readonly ISoapClientService _soapClientService = soapClientService;
-        private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly IGenerationService _generationService = generationService;
         private readonly InputParameters _inputParameters = inputParameters;
-        private readonly AppSettings _appSettings = appSettings;
+        private static readonly NLog.Logger _logger = LogManager.GetCurrentClassLogger();
         private static readonly CultureInfo _culture = CultureInfo.CurrentCulture;
 
         #region Properties
@@ -78,8 +76,6 @@ namespace MESBlastBlockGenerator.ViewModels
         [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
         private string _blockNumber = inputParameters.BlockNumber.ToString(_culture);
         [ObservableProperty]
-        private ChargeType _chargeType = inputParameters.ChargeType;
-        [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
@@ -90,19 +86,10 @@ namespace MESBlastBlockGenerator.ViewModels
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _secondaryChargeMass = inputParameters.SecondaryChargeMass.ToString(_culture);
         [ObservableProperty]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _holesCountWithDispersedCharge = inputParameters.HolesCountWithDispersedCharge.ToString(_culture);
-        [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
         private string _designDepth = inputParameters.DesignDepth.ToString(_culture);
-        [ObservableProperty]
-        [NotifyDataErrorInfo]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _realDepth = inputParameters.RealDepth.ToString(_culture);
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
@@ -111,40 +98,35 @@ namespace MESBlastBlockGenerator.ViewModels
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[1-9]\d*$", ErrorMessage = "Целое положительное число")]
-        private string _realDiameter = inputParameters.RealDiameter.ToString(_culture);
+        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
+        private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
+        [ObservableProperty]
+        [NotifyDataErrorInfo]
+        [Required(ErrorMessage = "Обязательно для заполнения")]
+        private string _explosiveName = inputParameters.ExplosiveName;
         [ObservableProperty]
         [NotifyDataErrorInfo]
         [Required(ErrorMessage = "Обязательно для заполнения")]
         [RegularExpression(@"^-?[0-9]+([.,][0-9]*)?$", ErrorMessage = "Число")]
-        private string _coordinatesDeviation = inputParameters.CoordinatesDeviation.ToString(_culture);
+        private string _explosiveDensity = inputParameters.ExplosiveDensity.ToString(_culture);
         [ObservableProperty]
-        private bool _isDrilling = inputParameters.IsDrilling;
+        private ChargeType _chargeType = inputParameters.ChargeType;
         [ObservableProperty]
-        [NotifyDataErrorInfo]
-        [Required(ErrorMessage = "Обязательно для заполнения")]
-        [RegularExpression(@"^[0-9]+([.,][0-9]*)?$", ErrorMessage = "Положительное число")]
-        private string _stemmingLength = inputParameters.StemmingLength.ToString(_culture);
+        private TextDocument _generatedCollar = new();
         [ObservableProperty]
-        private HoleMaterialType _holeMaterialType = inputParameters.HoleMaterialType;
-        [ObservableProperty]
-        private TextDocument _generatedXml = new();
+        private TextDocument _generatedIntervals = new();
         [ObservableProperty]
         private IBrush _statusColor = Brushes.Green;
         [ObservableProperty]
-        private bool _isXmlGenerated = false;
-
-        
-
-        public HoleMaterialType[] HoleMaterialTypeValues { get; } = (HoleMaterialType[])Enum.GetValues(typeof(HoleMaterialType));
+        private bool _isCsvGenerated = false;
         public ChargeType[] ChargeTypeValues { get; } = (ChargeType[])Enum.GetValues(typeof(ChargeType));
         public bool IsNotSingleChargeSelected => ChargeType != ChargeType.Одиночный;
         #endregion
 
         [RelayCommand]
-        private void GenerateXml()
+        private void GenerateCsv()
         {
-            _logger.Info("Инициализирована генерация XML");
+            _logger.Info("Инициализирована генерация ПМВ Micromine");
             ClearStatus();
 
             try
@@ -157,16 +139,17 @@ namespace MESBlastBlockGenerator.ViewModels
                     return;
                 }
 
-                _logger.Debug($"Попытка генерации XML с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
+                _logger.Debug($"Попытка генерации ПМВ Micromine с maxRow = {_inputParameters.MaxRow}, maxCol = {_inputParameters.MaxCol}, baseX = {_inputParameters.BaseX}, baseY = {_inputParameters.BaseY}, " +
                     $"baseZ = {_inputParameters.BaseZ}, distance = {_inputParameters.Distance}, pitName = {_inputParameters.PitName}, level = {_inputParameters.Level}, blockNumber = {_inputParameters.BlockNumber}, " +
-                    $"mainChargeMass = {_inputParameters.MainChargeMass}, designDepth = {_inputParameters.DesignDepth}, " +
-                    $"designDiameter = {_inputParameters.DesignDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
-                string xmlContent = _xmlGenerationService.GenerateMESMassExplosionProject(_inputParameters);
+                    $"mainChargeMass = {_inputParameters.MainChargeMass}" +
+                    $"designDepth = {_inputParameters.DesignDepth}, designDiameter = {_inputParameters.DesignDiameter}, stemmingLength = {_inputParameters.StemmingLength}");
+                (string blastHoles, string blastBlockPoints) = _generationService.GenerateMicromineMassExplosionProject(_inputParameters);
 
                 SettingsManager.SaveUserInputs(_inputParameters);
-                GeneratedXml = new TextDocument(xmlContent);
-                ShowMessage("XML успешно сгенерирован!");
-                IsXmlGenerated = true;
+                GeneratedCollar = new TextDocument(blastHoles);
+                GeneratedIntervals = new TextDocument(blastBlockPoints);
+                ShowMessage("ПМВ Micromine успешно сгенерирован!");
+                IsCsvGenerated = true;
             }
             catch (Exception ex)
             {
@@ -175,57 +158,65 @@ namespace MESBlastBlockGenerator.ViewModels
         }
 
         [RelayCommand]
-        private async Task CopyToClipboardAsync()
+        private async Task SaveCsvToFileAsync()
         {
             try
             {
-                _logger.Info("Инициализировано копирование результата в буфер обмена");
-                ClearStatus();
+                _logger.Info("Инициализировано сохранение ПМВ Micromine в файл");
 
                 var mainWindow = Avalonia.Application.Current.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime;
                 var window = mainWindow?.MainWindow;
 
-                if (window?.Clipboard != null)
+                if (window == null)
                 {
-                    await window.Clipboard.SetTextAsync(GeneratedXml.Text);
-                    ShowMessage("XML успешно скопирован в буфер обмена!");
+                    ShowMessage("Не удалось получить главное окно", true);
+                    return;
+                }
+
+                var blastHolesFile = await window.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+                {
+                    Title = "Сохранить CSV файл",
+                    FileTypeChoices =
+                    [
+                        new Avalonia.Platform.Storage.FilePickerFileType("CSV файлы")
+                        {
+                            Patterns = ["*.csv"],
+                            MimeTypes = ["application/csv", "text/csv"]
+                        },
+                        new Avalonia.Platform.Storage.FilePickerFileType("Все файлы")
+                        {
+                            Patterns = ["*"]
+                        }
+                    ],
+                    SuggestedFileName = $"{_inputParameters.PitName}{_inputParameters.Level}-{_inputParameters.BlockNumber}-collar.csv"
+                });
+
+                if (blastHolesFile != null)
+                {
+                    using var stream = await blastHolesFile.OpenWriteAsync();
+                    using var writer = new StreamWriter(stream);
+                    await writer.WriteAsync(GeneratedCollar.Text);
+                    await writer.FlushAsync();
+
+                    var blastHolesFilePath = blastHolesFile.Path.LocalPath;
+                    var directory = Path.GetDirectoryName(blastHolesFile.Path.LocalPath);
+                    var intervalsFilePath = Path.Combine(directory, $"{_inputParameters.PitName}{_inputParameters.Level}-{_inputParameters.BlockNumber}-interval.csv");
+                    await File.WriteAllTextAsync(intervalsFilePath, GeneratedIntervals.Text);
+
+                    ShowMessage($"ПМВ Micromine успешно сохранен в файл: {blastHolesFilePath}");
+                    _logger.Info($"ПМВ Micromine файл сохранен: {blastHolesFilePath}");
+
+
                 }
                 else
                 {
-                    ShowMessage("Не удалось получить доступ к буферу обмена", true);
+                    ShowMessage("Сохранение отменено пользователем");
                 }
             }
             catch (Exception ex)
             {
-                ShowMessage($"Ошибка копирования в буфер обмена: {ex.Message}", true);
-            }
-        }
-
-        [RelayCommand]
-        private async Task SendXmlAsync()
-        {
-            _logger.Info("Инициализирована отправка XML");
-            ClearStatus();
-
-            try
-            {
-                var isSuccess = await _soapClientService.SendXmlAsync(GeneratedXml.Text, _appSettings.SoapClient.EndpointUrl);
-
-                if (isSuccess)
-                {
-                    ShowMessage("ПМВ успешно передан!");
-                    _logger.Info("XML успешно отправлен и принят");
-                }
-                else
-                {
-                    ShowMessage("Ошибка при отправке XML", true);
-                    _logger.Error("Ошибка отправки XML через SOAP сервис");
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowMessage($"Ошибка отправки: {ex.Message}", true);
-                _logger.Error(ex, "Неожиданная ошибка при отправке XML");
+                ShowMessage($"Ошибка сохранения файла: {ex.Message}", true);
+                _logger.Error(ex, "Ошибка сохранения CSV файла");
             }
         }
 
@@ -338,13 +329,6 @@ namespace MESBlastBlockGenerator.ViewModels
                 _inputParameters.SecondaryChargeMass = result;
             }
         }
-        partial void OnHolesCountWithDispersedChargeChanged(string value)
-        {
-            if (int.TryParse(value, out int result) && result > 0)
-            {
-                _inputParameters.HolesCountWithDispersedCharge = result;
-            }
-        }
         partial void OnDesignDepthChanged(string value)
         {
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
@@ -352,19 +336,6 @@ namespace MESBlastBlockGenerator.ViewModels
                 _inputParameters.DesignDepth = result;
             }
         }
-        partial void OnRealDepthChanged(string value)
-        {
-            if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
-            {
-                _inputParameters.RealDepth = result;
-            }
-        }
-        partial void OnChargeTypeChanged(ChargeType value)
-        {
-            _inputParameters.ChargeType = value;
-            OnPropertyChanged(nameof(IsNotSingleChargeSelected));
-        }
-
         partial void OnStemmingLengthChanged(string value)
         {
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
@@ -379,27 +350,24 @@ namespace MESBlastBlockGenerator.ViewModels
                 _inputParameters.DesignDiameter = result;
             }
         }
-        partial void OnRealDiameterChanged(string value)
+        partial void OnExplosiveNameChanged(string value)
         {
-            if (int.TryParse(value, out int result) && result > 0)
+            if (!string.IsNullOrWhiteSpace(value))
             {
-                _inputParameters.RealDiameter = result;
+                _inputParameters.ExplosiveName = value;
             }
         }
-        partial void OnIsDrillingChanged(bool value)
-        {
-            _inputParameters.IsDrilling = value;
-        }
-        partial void OnCoordinatesDeviationChanged(string value)
+        partial void OnExplosiveDensityChanged(string value)
         {
             if (double.TryParse(value.ToString(_culture), out double result) && result > 0)
             {
-                _inputParameters.CoordinatesDeviation = result;
+                _inputParameters.ExplosiveDensity = result;
             }
         }
-        partial void OnHoleMaterialTypeChanged(HoleMaterialType value)
+        partial void OnChargeTypeChanged(ChargeType value)
         {
-            _inputParameters.HoleMaterialType = value;
+            _inputParameters.ChargeType = value;
+            OnPropertyChanged(nameof(IsNotSingleChargeSelected));
         }
         #endregion
     }
